@@ -565,63 +565,95 @@ body::before{content:'';position:fixed;inset:0;
     <div style="background:var(--panel);border:1px solid rgba(255,100,100,.3);border-radius:12px;padding:16px;margin-bottom:10px">
       <div style="font-family:'Cinzel',serif;font-size:13px;color:var(--red2);letter-spacing:2px;margin-bottom:14px;text-align:center">🔧 CHEAT PANEL</div>
 
-      <!-- コイン追加 -->
+      <!-- ステータス一覧 -->
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">📊 現在のステータス</div>
+        <div id="admin-status" style="background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:11px;line-height:2;color:var(--text)">
+          読み込み中...
+        </div>
+        <button class="cheat-btn" style="margin-top:6px;width:100%" onclick="refreshAdminStatus()">🔄 更新</button>
+      </div>
+
+      <!-- ステージ1通貨 -->
       <div style="margin-bottom:10px">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">🪙 コイン追加</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">— ステージ1 通貨 —</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+          <span style="font-size:10px;color:var(--gold);width:100%">🪙 コイン</span>
           <button class="cheat-btn" onclick="addResource('coin',10000)">+10K</button>
           <button class="cheat-btn" onclick="addResource('coin',1000000)">+1M</button>
           <button class="cheat-btn" onclick="addResource('coin',1000000000)">+1B</button>
           <button class="cheat-btn" onclick="setResource('coin',prompt('コイン数を入力'))">任意</button>
         </div>
-      </div>
-
-      <!-- ダイヤ追加 -->
-      <div style="margin-bottom:10px">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">💎 ダイヤ追加</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="cheat-btn" onclick="addResource('diamond',100)">+100</button>
-          <button class="cheat-btn" onclick="addResource('diamond',10000)">+10K</button>
-          <button class="cheat-btn" onclick="addResource('diamond',1000000)">+1M</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+          <span style="font-size:10px;color:var(--diamond);width:100%">💎 ダイヤ</span>
+          <button class="cheat-btn" onclick="addResource('diamond',1000)">+1K</button>
+          <button class="cheat-btn" onclick="addResource('diamond',100000)">+100K</button>
+          <button class="cheat-btn" onclick="addResource('diamond',10000000)">+10M</button>
           <button class="cheat-btn" onclick="setResource('diamond',prompt('ダイヤ数を入力'))">任意</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span style="font-size:10px;color:var(--rainbow);width:100%">🌈 虹石</span>
+          <button class="cheat-btn" onclick="addResource('rainbow',100)">+100</button>
+          <button class="cheat-btn" onclick="addResource('rainbow',10000)">+10K</button>
+          <button class="cheat-btn" onclick="addResource('rainbow',1000000)">+1M</button>
+          <button class="cheat-btn" onclick="setResource('rainbow',prompt('虹石数を入力'))">任意</button>
         </div>
       </div>
 
-      <!-- 虹石追加 -->
+      <!-- ステージ2通貨 -->
       <div style="margin-bottom:10px">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">🌈 虹石追加</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">— ステージ2 通貨 —</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+          <span style="font-size:10px;color:#c084fc;width:100%">💠 虚空石</span>
+          <button class="cheat-btn" style="border-color:rgba(192,132,252,.4);color:#c084fc" onclick="addS2Resource('void',1000)">+1K</button>
+          <button class="cheat-btn" style="border-color:rgba(192,132,252,.4);color:#c084fc" onclick="addS2Resource('void',100000)">+100K</button>
+          <button class="cheat-btn" style="border-color:rgba(192,132,252,.4);color:#c084fc" onclick="addS2Resource('void',10000000)">+10M</button>
+          <button class="cheat-btn" style="border-color:rgba(192,132,252,.4);color:#c084fc" onclick="addS2Resource('void',null,true)">任意</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+          <span style="font-size:10px;color:#818cf8;width:100%">🌀 混沌石</span>
+          <button class="cheat-btn" style="border-color:rgba(129,140,248,.4);color:#818cf8" onclick="addS2Resource('chaos',1000)">+1K</button>
+          <button class="cheat-btn" style="border-color:rgba(129,140,248,.4);color:#818cf8" onclick="addS2Resource('chaos',100000)">+100K</button>
+          <button class="cheat-btn" style="border-color:rgba(129,140,248,.4);color:#818cf8" onclick="addS2Resource('chaos',10000000)">+10M</button>
+          <button class="cheat-btn" style="border-color:rgba(129,140,248,.4);color:#818cf8" onclick="addS2Resource('chaos',null,true)">任意</button>
+        </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="cheat-btn" onclick="addResource('rainbow',10)">+10</button>
-          <button class="cheat-btn" onclick="addResource('rainbow',1000)">+1K</button>
-          <button class="cheat-btn" onclick="addResource('rainbow',100000)">+100K</button>
-          <button class="cheat-btn" onclick="setResource('rainbow',prompt('虹石数を入力'))">任意</button>
+          <span style="font-size:10px;color:#fbbf24;width:100%">👑 神格石</span>
+          <button class="cheat-btn" style="border-color:rgba(251,191,36,.4);color:#fbbf24" onclick="addS2Resource('god',1000)">+1K</button>
+          <button class="cheat-btn" style="border-color:rgba(251,191,36,.4);color:#fbbf24" onclick="addS2Resource('god',100000)">+100K</button>
+          <button class="cheat-btn" style="border-color:rgba(251,191,36,.4);color:#fbbf24" onclick="addS2Resource('god',10000000)">+10M</button>
+          <button class="cheat-btn" style="border-color:rgba(251,191,36,.4);color:#fbbf24" onclick="addS2Resource('god',null,true)">任意</button>
         </div>
       </div>
 
       <!-- 攻撃力 -->
       <div style="margin-bottom:10px">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">⚔️ 攻撃力設定</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">⚔️ 攻撃力</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="cheat-btn" onclick="addResource('atk',10000)">+10K</button>
           <button class="cheat-btn" onclick="addResource('atk',1000000)">+1M</button>
+          <button class="cheat-btn" onclick="addResource('atk',1000000000)">+1B</button>
+          <button class="cheat-btn" onclick="addResource('atk',1000000000000)">+1T</button>
           <button class="cheat-btn" onclick="setResource('atk',prompt('攻撃力を入力'))">任意</button>
+          <button class="cheat-btn" onclick="multiplyAtk()">✖ 倍率</button>
         </div>
       </div>
 
-      <!-- ボス全解放 -->
+      <!-- ボス管理 -->
       <div style="margin-bottom:10px">
         <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">👾 ボス管理</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="cheat-btn cheat-danger" onclick="unlockAllBosses()">全ボス解放</button>
-          <button class="cheat-btn cheat-danger" onclick="lockAllBosses()">全ボスリセット</button>
+          <button class="cheat-btn cheat-danger" onclick="unlockAllBosses()">S1全解放</button>
+          <button class="cheat-btn cheat-danger" onclick="lockAllBosses()">S1リセット</button>
+          <button class="cheat-btn cheat-danger" style="border-color:rgba(192,132,252,.5);color:#c084fc" onclick="unlockAllS2Bosses()">S2全解放</button>
+          <button class="cheat-btn cheat-danger" style="border-color:rgba(192,132,252,.5);color:#c084fc" onclick="forceUnlockStage2()">S2強制解放</button>
         </div>
       </div>
 
-      <!-- データリセット -->
+      <!-- データ管理 -->
       <div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">⚠️ データ管理</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="cheat-btn cheat-danger" onclick="resetAll()">全データリセット</button>
+          <button class="cheat-btn cheat-danger" onclick="resetAll()">全リセット</button>
           <button class="cheat-btn" onclick="lockAdmin()">🔒 ログアウト</button>
         </div>
       </div>
@@ -1234,6 +1266,7 @@ function checkAdminPw() {
     document.getElementById('admin-panel').style.display = 'block';
     document.getElementById('pw-error').style.display    = 'none';
     inp.value = '';
+    refreshAdminStatus();
   } else {
     document.getElementById('pw-error').style.display = 'block';
     inp.value = '';
@@ -1251,7 +1284,7 @@ function addResource(type, amt) {
   if(type==='diamond') diamond += amt;
   if(type==='rainbow') rainbow += amt;
   if(type==='atk')     rawAtk  += amt;
-  updateUI(); saveGame(); showToast('✅ 追加完了！');
+  updateUI(); saveGame(); showToast('✅ 追加完了！'); refreshAdminStatus();
 }
 function setResource(type, val) {
   if(val === null) return;
@@ -1261,11 +1294,66 @@ function setResource(type, val) {
   if(type==='diamond') diamond = amt;
   if(type==='rainbow') rainbow = amt;
   if(type==='atk')     rawAtk  = amt;
-  updateUI(); saveGame(); showToast('✅ 設定完了！');
+  updateUI(); saveGame(); showToast('✅ 設定完了！'); refreshAdminStatus();
+}
+function refreshAdminStatus() {
+  const s1cleared = BOSSES.filter(b=>b.clearCount>0).length;
+  const s2cleared = typeof S2_BOSSES!=='undefined' ? S2_BOSSES.filter(b=>b.clearCount>0).length : 0;
+  const el = document.getElementById('admin-status');
+  if(!el) return;
+  el.innerHTML =
+    `⚔️ 攻撃力：<b style="color:var(--red2)">${fmtNum(getAtk())}</b><br>` +
+    `🪙 コイン：<b style="color:var(--gold)">${fmtNum(coin)}</b><br>` +
+    `💎 ダイヤ：<b style="color:var(--diamond)">${fmtNum(diamond)}</b><br>` +
+    `🌈 虹石：<b style="color:var(--rainbow)">${fmtNum(rainbow)}</b><br>` +
+    `💠 虚空石：<b style="color:#c084fc">${fmtNum(typeof voidStone!=='undefined'?voidStone:0)}</b><br>` +
+    `🌀 混沌石：<b style="color:#818cf8">${fmtNum(typeof chaosStone!=='undefined'?chaosStone:0)}</b><br>` +
+    `👑 神格石：<b style="color:#fbbf24">${fmtNum(typeof godStone!=='undefined'?godStone:0)}</b><br>` +
+    `👾 S1ボス進行：<b>${s1cleared} / ${BOSSES.length}</b><br>` +
+    `🔮 S2ボス進行：<b>${s2cleared} / ${typeof S2_BOSSES!=='undefined'?S2_BOSSES.length:0}</b><br>` +
+    `🏆 S2解放：<b style="color:${(typeof stage2Unlocked!=='undefined'&&stage2Unlocked)?'var(--green)':'var(--red2)'}">${(typeof stage2Unlocked!=='undefined'&&stage2Unlocked)?'✅ 解放済み':'❌ 未解放'}</b>`;
+}
+function addS2Resource(type, amt, prompt_mode) {
+  if (prompt_mode) {
+    const v = prompt(type==='void'?'虚空石数を入力':type==='chaos'?'混沌石数を入力':'神格石数を入力');
+    if (v === null) return;
+    amt = Number(v);
+    if (isNaN(amt) || amt < 0) { showToast('❌ 無効な値'); return; }
+  }
+  if (type==='void')  voidStone  += amt;
+  if (type==='chaos') chaosStone += amt;
+  if (type==='god')   godStone   += amt;
+  updateUI(); saveGame();
+  showToast(`✅ ${type==='void'?'💠':type==='chaos'?'🌀':'👑'} +${fmtNum(amt)} 追加！`);
+  refreshAdminStatus();
+}
+function multiplyAtk() {
+  const v = prompt('攻撃力の倍率を入力（例：10で10倍）');
+  if (v === null) return;
+  const m = Number(v);
+  if (isNaN(m) || m <= 0) { showToast('❌ 無効な倍率'); return; }
+  rawAtk = Math.floor(rawAtk * m);
+  updateUI(); saveGame(); showToast(`✅ 攻撃力 ×${m} → ${fmtNum(getAtk())}`);
+  refreshAdminStatus();
+}
+function unlockAllS2Bosses() {
+  if (typeof S2_BOSSES === 'undefined') { showToast('S2未解放'); return; }
+  S2_BOSSES.forEach(b => { b.unlocked = true; b.clearCount = 3; });
+  if (typeof currentStage!=='undefined' && currentStage === 2) s2RenderBossList();
+  saveGame(); showToast('🔮 S2全ボス解放！');
+  refreshAdminStatus();
+}
+function forceUnlockStage2() {
+  if (typeof unlockStage2UI === 'function') unlockStage2UI();
+  const banner = document.getElementById('stage-unlock-banner');
+  if (banner) banner.classList.add('visible');
+  saveGame(); showToast('🔮 ステージ2 強制解放！');
+  refreshAdminStatus();
 }
 function unlockAllBosses() {
   BOSSES.forEach(b => { b.unlocked = true; b.clearCount = 3; });
-  renderBossList(); saveGame(); showToast('🔓 全ボス解放！');
+  renderBossList(); saveGame(); showToast('🔓 S1全ボス解放！');
+  refreshAdminStatus();
 }
 function lockAllBosses() {
   if(!confirm('ボスの進行状況をリセットしますか？')) return;
