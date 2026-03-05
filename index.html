@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>⚔️ タップボスバトル</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#08080f; --panel:#0e0e1c; --border:#2a2a4a;
+  --gold:#f0b429; --gold2:#ffde78;
+  --red:#e53935; --red2:#ff6b6b;
+  --blue:#4fc3f7; --cyan:#00e5ff; --purple:#b388ff; --green:#69f0ae;
+  --diamond:#89d4f5; --diamond2:#c5eeff;
+  --rainbow:#ff9de2; --rainbow2:#ffe29a;
+  --text:#e0e0ff; --muted:#6b6b9a;
+  --hp-green:#00e676; --hp-yellow:#ffea00; --hp-red:#ff1744;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;overflow-x:hidden;
+  background-image:radial-gradient(ellipse at 20% 50%,rgba(99,42,180,.07) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(224,57,53,.06) 0%,transparent 50%)}
+body::before{content:'';position:fixed;inset:0;
+  background-image:radial-gradient(1px 1px at 10% 15%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 30% 45%,rgba(255,255,255,.2) 0%,transparent 100%),radial-gradient(1px 1px at 55% 25%,rgba(255,255,255,.25) 0%,transparent 100%),radial-gradient(1px 1px at 75% 60%,rgba(255,255,255,.15) 0%,transparent 100%),radial-gradient(1px 1px at 90% 10%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 45% 80%,rgba(255,255,255,.2) 0%,transparent 100%);
+  pointer-events:none;z-index:0}
+.wrap{max-width:480px;margin:0 auto;padding:12px;position:relative;z-index:1}
+
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:10px}
+.header-title{font-family:'Cinzel',serif;font-size:15px;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px}
+.header-stats{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.stat-item{display:flex;align-items:center;gap:3px;font-size:11px}
+.stat-val{font-weight:700;font-size:13px}
+.sv-gold{color:var(--gold)}.sv-dia{color:var(--diamond)}.sv-atk{color:var(--red2)}
+.sv-rb{background:linear-gradient(90deg,#ff9de2,#ffe29a,#a8f0a8,#9de2ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:10px}
+.tab{flex:1;padding:7px 2px;background:var(--panel);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:10px;cursor:pointer;transition:all .2s}
+.tab.active{border-color:var(--gold);color:var(--gold);background:rgba(240,180,41,.08)}
+.pane{display:none}.pane.active{display:block}
+
+/* Boss Panel */
+.boss-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.boss-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.boss-name-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.boss-name{font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:var(--red2);text-shadow:0 0 20px rgba(255,107,107,.4)}
+.boss-emoji{font-size:32px;filter:drop-shadow(0 0 12px rgba(255,100,100,.5))}
+.hp-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px}
+.hp-bar-track{width:100%;height:14px;background:rgba(255,255,255,.05);border-radius:7px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.hp-bar-fill{height:100%;border-radius:7px;transition:width .2s ease;background:linear-gradient(90deg,var(--hp-green),#00ff88);box-shadow:0 0 8px rgba(0,230,118,.5)}
+.hp-bar-fill.mid{background:linear-gradient(90deg,var(--hp-yellow),#ffe57f);box-shadow:0 0 8px rgba(255,234,0,.5)}
+.hp-bar-fill.low{background:linear-gradient(90deg,var(--hp-red),#ff6b6b);box-shadow:0 0 8px rgba(255,23,68,.6)}
+.clear-progress{display:flex;gap:4px;margin-top:6px}
+.clear-pip{flex:1;height:4px;border-radius:2px;background:var(--border)}
+.clear-pip.done{background:var(--gold)}
+
+/* Attack Button */
+.attack-btn{width:100%;height:80px;font-family:'Cinzel',serif;font-size:22px;font-weight:900;letter-spacing:4px;background:linear-gradient(135deg,#b71c1c,#e53935,#ef5350);color:white;border:none;border-radius:12px;cursor:pointer;position:relative;overflow:hidden;box-shadow:0 4px 24px rgba(229,57,53,.35),0 0 0 1px rgba(255,100,100,.2);transition:transform .08s,box-shadow .08s;margin-bottom:10px;-webkit-tap-highlight-color:transparent}
+.attack-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15),transparent)}
+.attack-btn:active{transform:scale(.96);box-shadow:0 2px 10px rgba(229,57,53,.5)}
+.attack-btn.shake{animation:shake .2s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.dmg-float{position:fixed;font-family:'Cinzel',serif;font-weight:900;font-size:22px;color:var(--gold2);text-shadow:0 0 10px rgba(255,200,0,.8);pointer-events:none;z-index:9999;animation:floatUp .9s ease-out forwards}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-70px) scale(.7)}}
+
+/* Boss List */
+.boss-list{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}.boss-list .boss-btn-wrap{position:relative}
+.boss-btn-wrap{position:relative}
+.boss-btn{padding:8px 36px 8px 10px;background:var(--panel);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:12px;cursor:pointer;text-align:left;transition:all .2s;line-height:1.5;width:100%;display:block}
+.boss-btn:hover:not(:disabled){border-color:var(--red);background:rgba(229,57,53,.08)}
+.boss-btn.active-boss{border-color:var(--red2);background:rgba(229,57,53,.12);color:var(--red2)}
+.boss-btn:disabled{opacity:.35;cursor:not-allowed}
+.boss-btn .boss-drop{font-size:10px;color:var(--gold);margin-top:2px}
+.boss-btn .boss-hp-tag{font-size:10px;color:var(--muted)}
+.extreme-tag{font-size:9px;background:rgba(255,150,0,.2);border:1px solid rgba(255,150,0,.4);color:#ffab40;padding:1px 4px;border-radius:3px}
+.pin-btn{position:absolute;top:6px;right:6px;font-size:10px;background:rgba(240,180,41,.15);border:1px solid rgba(240,180,41,.3);border-radius:4px;color:var(--gold);cursor:pointer;padding:2px 5px;transition:all .2s;line-height:1.4;z-index:2}
+.pin-btn:hover{background:rgba(240,180,41,.35)}
+.pin-btn.pinned{background:rgba(240,180,41,.3);border-color:var(--gold);color:var(--gold2)}
+.pinned-boss-banner{background:rgba(240,180,41,.06);border:1px dashed rgba(240,180,41,.25);border-radius:8px;padding:6px 10px;margin-bottom:8px;font-size:11px;color:var(--gold);display:none}
+.pinned-boss-banner.visible{display:block}
+
+.log-box{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;min-height:36px;margin-bottom:10px;color:var(--gold2);text-align:center}
+
+/* Gacha Type Tabs */
+.gacha-type-tabs{display:flex;gap:5px;margin-bottom:12px}
+.gacha-type-tab{flex:1;padding:8px 4px;border-radius:8px;border:1px solid var(--border);background:var(--panel);cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;transition:all .2s;text-align:center}
+.gacha-type-tab.coin-tab{color:var(--gold)}
+.gacha-type-tab.coin-tab.active{border-color:var(--gold);background:rgba(240,180,41,.1)}
+.gacha-type-tab.dia-tab{color:var(--diamond)}
+.gacha-type-tab.dia-tab.active{border-color:var(--diamond);background:rgba(137,212,245,.1)}
+.gacha-type-tab.rb-tab{background:linear-gradient(135deg,rgba(255,157,226,.08),rgba(255,226,154,.08),rgba(168,240,168,.08));color:var(--rainbow)}
+.gacha-type-tab.rb-tab.active{border-color:var(--rainbow);background:linear-gradient(135deg,rgba(255,157,226,.15),rgba(255,226,154,.15),rgba(168,240,168,.15))}
+.gacha-pane{display:none}.gacha-pane.active{display:block}
+
+/* Rate Table */
+.gacha-rates{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px}
+.gacha-rates-title{font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase}
+.rate-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04)}
+.rate-row:last-child{border-bottom:none}
+.rate-badge{padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap}
+.rb-r  {background:rgba(79,195,247,.15);color:var(--blue);border:1px solid rgba(79,195,247,.3)}
+.rb-sr {background:rgba(130,177,255,.15);color:#82b1ff;border:1px solid rgba(130,177,255,.3)}
+.rb-hr {background:rgba(179,136,255,.15);color:var(--purple);border:1px solid rgba(179,136,255,.3)}
+.rb-ur {background:rgba(255,193,7,.15);color:#ffd740;border:1px solid rgba(255,193,7,.3)}
+.rb-lr {background:rgba(255,100,100,.15);color:var(--red2);border:1px solid rgba(255,100,100,.3)}
+.rb-mlr{background:rgba(0,229,255,.12);color:var(--cyan);border:1px solid rgba(0,229,255,.4)}
+.rb-glr{background:rgba(255,150,200,.12);color:#ffb3e6;border:1px solid rgba(255,150,200,.4)}
+.rb-gr {background:rgba(255,215,0,.15);color:#ffe082;border:1px solid rgba(255,215,0,.5);box-shadow:0 0 6px rgba(255,200,0,.2)}
+.rb-tr {background:rgba(200,100,255,.15);color:#e1bee7;border:1px solid rgba(200,100,255,.5);box-shadow:0 0 8px rgba(180,100,255,.3)}
+/* Rainbow rarity badges */
+.rb-rbr1{background:linear-gradient(90deg,rgba(255,157,226,.15),rgba(255,226,154,.15));color:#ffb3e6;border:1px solid rgba(255,157,226,.4)}
+.rb-rbr2{background:linear-gradient(90deg,rgba(255,226,154,.15),rgba(168,240,168,.15));color:#ffe29a;border:1px solid rgba(255,200,100,.4);box-shadow:0 0 6px rgba(255,200,0,.15)}
+.rb-rbr3{background:linear-gradient(90deg,rgba(168,240,168,.15),rgba(157,226,255,.15));color:#a8f0a8;border:1px solid rgba(100,220,100,.4);box-shadow:0 0 8px rgba(100,220,100,.2)}
+.rb-rbr4{background:linear-gradient(90deg,rgba(157,226,255,.15),rgba(200,157,255,.15));color:#9de2ff;border:1px solid rgba(100,180,255,.4);box-shadow:0 0 10px rgba(100,180,255,.25)}
+.rb-rbr5{background:linear-gradient(135deg,rgba(255,157,226,.2),rgba(255,226,154,.2),rgba(168,240,168,.2),rgba(157,226,255,.2));color:#fff;border:1px solid rgba(255,200,200,.6);box-shadow:0 0 14px rgba(255,200,255,.35);animation:rbShine 2s ease-in-out infinite}
+@keyframes rbShine{0%,100%{box-shadow:0 0 14px rgba(255,200,255,.35)}50%{box-shadow:0 0 22px rgba(255,200,255,.7)}}
+
+/* Gacha Buttons */
+.gacha-btns{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:10px}
+.gacha-btn{padding:8px 3px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:10px;cursor:pointer;transition:all .2s;text-align:center;line-height:1.7}
+.gacha-btn.coin-btn:hover{border-color:var(--gold);background:rgba(240,180,41,.07)}
+.gacha-btn.coin-btn .cost{color:var(--gold);font-weight:700;font-size:9px}
+.gacha-btn.dia-btn:hover{border-color:var(--diamond);background:rgba(137,212,245,.07)}
+.gacha-btn.dia-btn .cost{color:var(--diamond);font-weight:700;font-size:9px}
+.gacha-btn.rb-btn:hover{border-color:var(--rainbow);background:rgba(255,157,226,.07)}
+.gacha-btn.rb-btn .cost{background:linear-gradient(90deg,#ff9de2,#ffe29a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;font-size:9px}
+.last-summary{font-size:12px;color:var(--muted);text-align:center;padding:8px}
+
+/* Exchange Box */
+.exchange-box{border-radius:10px;padding:14px;margin-bottom:12px}
+.exchange-box.dia-box{background:rgba(137,212,245,.05);border:1px solid rgba(137,212,245,.2)}
+.exchange-box.rb-box{background:linear-gradient(135deg,rgba(255,157,226,.05),rgba(255,226,154,.05));border:1px solid rgba(255,157,226,.2)}
+.exchange-title{font-size:12px;letter-spacing:1px;margin-bottom:10px;font-weight:700}
+.exchange-title.dia{color:var(--diamond)}.exchange-title.rb{color:var(--rainbow)}
+.exchange-row{display:flex;gap:8px;align-items:center}
+.exchange-input{flex:1;background:rgba(0,0,0,.4);border:1px solid rgba(137,212,245,.3);border-radius:7px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:14px;padding:8px 12px;outline:none;transition:border-color .2s}
+.exchange-input.rb-input{border-color:rgba(255,157,226,.3)}
+.exchange-input:focus{border-color:var(--diamond)}
+.exchange-input.rb-input:focus{border-color:var(--rainbow)}
+.exchange-input::placeholder{color:var(--muted)}
+.exchange-btn{padding:8px 12px;border-radius:7px;font-family:'Noto Sans JP',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;white-space:nowrap;border:1px solid}
+.exchange-btn.dia{border-color:var(--diamond);background:rgba(137,212,245,.1);color:var(--diamond)}
+.exchange-btn.dia:hover{background:rgba(137,212,245,.2)}
+.exchange-btn.rb{border-color:var(--rainbow);background:rgba(255,157,226,.1);color:var(--rainbow)}
+.exchange-btn.rb:hover{background:rgba(255,157,226,.2)}
+.exchange-hint{font-size:10px;color:var(--muted);margin-top:6px}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(6px)}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px;max-width:400px;width:92%;position:relative;transform:scale(.9);transition:transform .3s;max-height:92vh;overflow-y:auto}
+.modal-overlay.open .modal{transform:scale(1)}
+.modal-title{font-family:'Cinzel',serif;font-size:14px;font-weight:700;text-align:center;margin-bottom:14px;letter-spacing:2px}
+.modal-title.coin-title{color:var(--gold)}.modal-title.dia-title{color:var(--diamond)}
+.modal-title.rb-title{background:linear-gradient(90deg,#ff9de2,#ffe29a,#a8f0a8,#9de2ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-grid{display:grid;gap:4px;margin-bottom:12px}
+.result-card{border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-weight:700;border:1px solid;padding:5px 2px;gap:2px;aspect-ratio:.65;animation:cardReveal .3s ease both}
+@keyframes cardReveal{from{opacity:0;transform:rotateY(90deg) scale(.8)}to{opacity:1;transform:rotateY(0) scale(1)}}
+.result-card.r  {background:rgba(79,195,247,.1);border-color:rgba(79,195,247,.4);color:var(--blue)}
+.result-card.sr {background:rgba(130,177,255,.1);border-color:rgba(130,177,255,.4);color:#82b1ff}
+.result-card.hr {background:rgba(179,136,255,.15);border-color:rgba(179,136,255,.5);color:var(--purple)}
+.result-card.ur {background:rgba(255,215,64,.12);border-color:rgba(255,215,64,.5);color:#ffd740}
+.result-card.lr {background:rgba(255,100,100,.15);border-color:rgba(255,100,100,.5);color:var(--red2);box-shadow:0 0 10px rgba(255,100,100,.25)}
+.result-card.mlr{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.5);color:var(--cyan);box-shadow:0 0 10px rgba(0,229,255,.25)}
+.result-card.glr{background:rgba(255,150,200,.1);border-color:rgba(255,150,200,.4);color:#ffb3e6;box-shadow:0 0 10px rgba(255,150,200,.25)}
+.result-card.gr {background:rgba(255,215,0,.12);border-color:rgba(255,215,0,.6);color:#ffe082;box-shadow:0 0 14px rgba(255,200,0,.4)}
+.result-card.tr {background:rgba(200,100,255,.15);border-color:rgba(200,100,255,.6);color:#e1bee7;animation:cardReveal .3s ease both,trPulse 2s infinite}
+@keyframes trPulse{0%,100%{box-shadow:0 0 16px rgba(180,100,255,.4)}50%{box-shadow:0 0 30px rgba(200,100,255,.7)}}
+.result-card.rbr1{background:linear-gradient(135deg,rgba(255,157,226,.12),rgba(255,226,154,.12));border-color:rgba(255,157,226,.4);color:#ffb3e6}
+.result-card.rbr2{background:linear-gradient(135deg,rgba(255,226,154,.15),rgba(168,240,168,.15));border-color:rgba(255,200,100,.4);color:#ffe29a;box-shadow:0 0 8px rgba(255,200,0,.2)}
+.result-card.rbr3{background:linear-gradient(135deg,rgba(168,240,168,.15),rgba(157,226,255,.15));border-color:rgba(100,220,100,.4);color:#a8f0a8;box-shadow:0 0 10px rgba(100,220,100,.25)}
+.result-card.rbr4{background:linear-gradient(135deg,rgba(157,226,255,.18),rgba(200,157,255,.18));border-color:rgba(100,180,255,.5);color:#9de2ff;box-shadow:0 0 12px rgba(100,180,255,.3)}
+.result-card.rbr5{background:linear-gradient(135deg,rgba(255,157,226,.2),rgba(255,226,154,.2),rgba(168,240,168,.2),rgba(157,226,255,.2));border-color:rgba(255,200,200,.7);color:#fff;animation:cardReveal .3s ease both,rbCardPulse 1.5s ease-in-out infinite}
+@keyframes rbCardPulse{0%,100%{box-shadow:0 0 16px rgba(255,200,255,.5)}50%{box-shadow:0 0 32px rgba(255,200,255,.9),0 0 64px rgba(200,200,255,.3)}}
+.result-summary{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;line-height:2}
+.result-summary span{color:var(--gold2);font-weight:700}
+.modal-close{width:100%;padding:10px;border:none;border-radius:8px;color:white;font-family:'Cinzel',serif;font-size:14px;letter-spacing:2px;cursor:pointer}
+.modal-close.coin-close{background:linear-gradient(135deg,#4a148c,#7b1fa2)}
+.modal-close.dia-close{background:linear-gradient(135deg,#006064,#0097a7)}
+.modal-close.rb-close{background:linear-gradient(135deg,#880e4f,#ad1457,#c2185b)}
+
+/* Zukan */
+.zukan-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.zukan-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px}
+.zukan-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.zukan-count{font-size:11px;color:var(--muted)}
+.zukan-atk{font-size:17px;font-weight:700;color:var(--gold);font-family:'Cinzel',serif}
+.zukan-atk-label{font-size:10px;color:var(--muted)}
+.zukan-section-label{font-size:11px;color:var(--muted);letter-spacing:1px;padding:8px 2px 6px;grid-column:1/-1;border-bottom:1px solid var(--border);margin-bottom:2px}
+
+/* Cheat buttons */
+.cheat-btn{padding:6px 12px;border-radius:6px;border:1px solid rgba(255,100,100,.3);background:rgba(255,100,100,.08);color:var(--red2);font-family:'Noto Sans JP',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
+.cheat-btn:hover{background:rgba(255,100,100,.2);border-color:var(--red2)}
+.cheat-btn.cheat-danger{border-color:rgba(255,50,50,.5);background:rgba(255,50,50,.1)}
+.cheat-btn.cheat-danger:hover{background:rgba(255,50,50,.25)}
+
+/* Toast */
+
+/* Boss Rush */
+.rush-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(6px)}
+.rush-overlay.open{opacity:1;pointer-events:all}
+.rush-box{background:var(--panel);border:2px solid var(--red2);border-radius:16px;padding:20px;max-width:420px;width:94%;position:relative}
+.rush-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.rush-title{font-family:'Cinzel',serif;font-size:18px;font-weight:900;color:var(--red2);letter-spacing:2px}
+.rush-timer{font-family:'Cinzel',serif;font-size:28px;font-weight:900;color:var(--gold);text-shadow:0 0 12px rgba(240,180,41,.5)}
+.rush-timer.danger{color:var(--red2);animation:timerPulse .4s ease-in-out infinite}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.rush-boss-name{font-size:14px;color:var(--red2);font-weight:700;margin-bottom:6px;text-align:center;min-height:20px}
+.rush-hp-track{width:100%;height:16px;background:rgba(255,255,255,.05);border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.08);margin-bottom:10px}
+.rush-hp-fill{height:100%;border-radius:8px;transition:width .1s ease;background:linear-gradient(90deg,var(--hp-green),#00ff88);box-shadow:0 0 8px rgba(0,230,118,.5)}
+.rush-hp-fill.mid{background:linear-gradient(90deg,var(--hp-yellow),#ffe57f)}
+.rush-hp-fill.low{background:linear-gradient(90deg,var(--hp-red),#ff6b6b)}
+.rush-stats{display:flex;gap:10px;margin-bottom:12px;justify-content:center}
+.rush-stat{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:6px 14px;text-align:center;font-size:12px}
+.rush-stat-val{font-family:'Cinzel',serif;font-size:16px;font-weight:900;color:var(--gold)}
+.rush-atk-btn{width:100%;height:72px;font-family:'Cinzel',serif;font-size:20px;font-weight:900;letter-spacing:3px;background:linear-gradient(135deg,#b71c1c,#e53935,#ef5350);color:white;border:none;border-radius:12px;cursor:pointer;position:relative;overflow:hidden;box-shadow:0 4px 24px rgba(229,57,53,.4);transition:transform .08s}
+.rush-atk-btn:active{transform:scale(.96)}
+.rush-atk-btn:disabled{opacity:.4;cursor:default}
+.rush-atk-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15),transparent)}
+.rush-result{text-align:center}
+.rush-result-title{font-family:'Cinzel',serif;font-size:20px;font-weight:900;color:var(--gold);margin-bottom:12px;letter-spacing:2px}
+.rush-result-kills{font-size:36px;font-weight:900;color:var(--red2);font-family:'Cinzel',serif;margin-bottom:4px}
+.rush-result-rewards{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:12px;margin:12px 0;text-align:left}
+.rush-reward-row{display:flex;justify-content:space-between;padding:3px 0;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04)}
+.rush-reward-row:last-child{border-bottom:none}
+.rush-reward-val{color:var(--gold);font-weight:700}
+.rush-close-btn{width:100%;padding:10px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--red),#c62828);color:white;font-family:'Cinzel',serif;font-size:14px;letter-spacing:2px;cursor:pointer;margin-top:4px}
+.rush-start-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--red),#e53935);color:white;font-family:'Cinzel',serif;font-size:15px;letter-spacing:2px;cursor:pointer;margin-top:8px;box-shadow:0 4px 16px rgba(229,57,53,.4)}
+.rush-start-btn:hover{transform:scale(1.02)}
+.rush-preview{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:var(--muted);line-height:2}
+.rush-preview span{color:var(--text);font-weight:700}
+
+
+/* Stage Selector */
+.stage-selector{display:flex;gap:5px;margin-bottom:10px}
+.stage-btn{flex:1;padding:7px 4px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:11px;cursor:pointer;transition:all .2s;text-align:center;font-weight:700}
+.stage-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(240,180,41,.08)}
+.stage-btn.locked{opacity:.35;cursor:not-allowed}
+.stage-btn.s2-active{border-color:#a855f7;color:#c084fc;background:rgba(168,85,247,.08)}
+.stage-btn.s2{color:#c084fc}
+.stage-unlock-banner{background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(99,102,241,.1));border:1px solid rgba(168,85,247,.4);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:12px;text-align:center;display:none}
+.stage-unlock-banner.visible{display:block}
+.stage-unlock-banner .sub-text{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* Stage 2 theme overrides (applied via .s2-theme on a wrapper) */
+.s2-boss-panel{background:linear-gradient(135deg,rgba(88,28,135,.15),rgba(30,27,75,.3));border-color:rgba(168,85,247,.3)}
+.s2-boss-panel::before{background:linear-gradient(90deg,transparent,#a855f7,transparent) !important}
+.s2-boss-name{color:#c084fc !important;text-shadow:0 0 20px rgba(192,132,252,.4) !important}
+.s2-atk-btn{background:linear-gradient(135deg,#4c1d95,#7c3aed,#8b5cf6) !important}
+.s2-log{border-color:rgba(168,85,247,.3) !important;color:#c084fc !important}
+
+/* Rush 50kills unlock animation */
+@keyframes rushUnlock{0%{transform:scale(0.8);opacity:0}60%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+.rush-unlock-flash{animation:rushUnlock .5s ease-out}
+
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--panel);border:1px solid var(--gold);border-radius:8px;padding:10px 20px;font-size:13px;color:var(--gold2);z-index:9998;transition:transform .35s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- Header -->
+<div class="header">
+  <div class="header-title">⚔ TAP BOSS</div>
+  <div class="header-stats">
+    <div class="stat-item">⚔️ <span class="stat-val sv-atk" id="atk-val">1</span></div>
+    <div class="stat-item">🪙 <span class="stat-val sv-gold" id="coin-val">0</span></div>
+    <div class="stat-item">💎 <span class="stat-val sv-dia" id="dia-val">0</span></div>
+    <div class="stat-item">🌈 <span class="stat-val sv-rb" id="rb-val">0</span></div>
+  </div>
+</div>
+
+<!-- Stage Selector -->
+<div class="stage-selector" id="stage-selector">
+  <button class="stage-btn active" id="stage-btn-1" onclick="switchStage(1)">⚔️ ステージ1</button>
+  <button class="stage-btn s2 locked" id="stage-btn-2" onclick="switchStage(2)">🔮 ステージ2<br><span style="font-size:9px;font-weight:400">Rush 50体で解放</span></button>
+</div>
+<div class="stage-unlock-banner" id="stage-unlock-banner">
+  🔮 <strong>ステージ2 解放！</strong> ボスラッシュ50体撃破おめでとう！
+  <div class="sub-text">ステージ2は新たな闇の世界。強力なボスと新ガチャが待っている…</div>
+</div>
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('battle')" data-tab="battle">⚔️ バトル</button>
+  <button class="tab" onclick="switchTab('gacha')" data-tab="gacha">🎰 ガチャ</button>
+  <button class="tab" onclick="switchTab('zukan')" data-tab="zukan">📖 図鑑</button>
+  <button class="tab" onclick="switchTab('admin')" data-tab="admin" id="admin-tab" style="display:none">🔧 管理</button>
+</div>
+<button onclick="openBossRush()" style="width:100%;padding:9px;margin-bottom:10px;background:linear-gradient(135deg,#7b1fa2,#e53935);color:white;border:none;border-radius:8px;font-family:'Cinzel',serif;font-size:13px;font-weight:900;letter-spacing:2px;cursor:pointer;box-shadow:0 3px 12px rgba(229,57,53,.3)">🏆 BOSS RUSH</button>
+
+<!-- ═══ BATTLE ═══ -->
+<div class="pane active" id="pane-battle">
+  <div class="pinned-boss-banner" id="pinned-banner">📌 ピン中のボス：<span id="pinned-name"></span></div>
+  <div class="boss-panel">
+    <div class="boss-name-row">
+      <div>
+        <div id="no-boss-msg" style="color:var(--muted);font-size:13px">← ボスを選択してください</div>
+        <div class="boss-name" id="boss-name" style="display:none"></div>
+      </div>
+      <div class="boss-emoji" id="boss-emoji"></div>
+    </div>
+    <div id="hp-bar-wrap" style="display:none">
+      <div class="hp-label"><span>HP</span><span id="hp-text"></span></div>
+      <div class="hp-bar-track"><div class="hp-bar-fill" id="hp-bar"></div></div>
+      <div class="clear-progress" id="clear-progress"></div>
+    </div>
+  </div>
+  <button class="attack-btn" id="attack-btn" onclick="attack()">ATTACK</button>
+  <div class="log-box" id="log">ボスを選択して戦闘を開始！</div>
+  <div class="boss-list" id="boss-list"></div>
+</div>
+
+<!-- ═══ GACHA ═══ -->
+<div class="pane" id="pane-gacha">
+  <div class="gacha-type-tabs">
+    <button class="gacha-type-tab coin-tab active" onclick="switchGachaType('coin')">🪙 コイン</button>
+    <button class="gacha-type-tab dia-tab" onclick="switchGachaType('diamond')">💎 ダイヤ</button>
+    <button class="gacha-type-tab rb-tab" onclick="switchGachaType('rainbow')">🌈 虹</button>
+  </div>
+
+  <!-- Coin Gacha -->
+  <div class="gacha-pane active" id="gpane-coin">
+    <div class="gacha-rates">
+      <div class="gacha-rates-title">📊 コインガチャ 排出確率</div>
+      <div class="rate-row"><span class="rate-badge rb-r">レア</span><span>50%</span><span style="color:var(--muted)">攻+1</span></div>
+      <div class="rate-row"><span class="rate-badge rb-sr">スーパーレア</span><span>25%</span><span style="color:var(--muted)">攻+3</span></div>
+      <div class="rate-row"><span class="rate-badge rb-hr">ハイパーレア</span><span>15%</span><span style="color:var(--muted)">攻+5</span></div>
+      <div class="rate-row"><span class="rate-badge rb-ur">ウルトラレア</span><span>8%</span><span style="color:var(--muted)">攻+10</span></div>
+      <div class="rate-row"><span class="rate-badge rb-lr">レジェンドレア</span><span>2%</span><span style="color:var(--muted)">攻+15</span></div>
+    </div>
+    <div class="gacha-btns">
+      <button class="gacha-btn coin-btn" onclick="doCoinGacha(1)">単発<br><span class="cost">🪙100</span></button>
+      <button class="gacha-btn coin-btn" onclick="doCoinGacha(10)">10連<br><span class="cost">🪙1K</span></button>
+      <button class="gacha-btn coin-btn" onclick="doCoinGacha(100)">100連<br><span class="cost">🪙10K</span></button>
+      <button class="gacha-btn coin-btn" onclick="doCoinGacha(1000)">1000連<br><span class="cost">🪙100K</span></button>
+      <button class="gacha-btn coin-btn" onclick="doCoinGacha(10000)">10000連<br><span class="cost">🪙1M</span></button>
+    </div>
+    <div class="last-summary" id="last-coin-summary">まだガチャを引いていません</div>
+  </div>
+
+  <!-- Diamond Gacha -->
+  <div class="gacha-pane" id="gpane-diamond">
+    <div class="exchange-box dia-box">
+      <div class="exchange-title dia">💎 コイン → ダイヤ 変換</div>
+      <div class="exchange-row">
+        <input class="exchange-input" type="number" id="dia-exchange-input" placeholder="変換するコイン数" min="1000"><button class="exchange-btn dia" style="font-size:11px;padding:8px 8px" onclick="setDiaMax()">最大</button>
+        <button class="exchange-btn dia" onclick="exchangeToDiamond()">変換</button>
+      </div>
+      <div class="exchange-hint">🪙1,000 = 💎1 ／ 端数切り捨て</div>
+    </div>
+    <div class="gacha-rates">
+      <div class="gacha-rates-title">💎 ダイヤガチャ 排出確率</div>
+      <div class="rate-row"><span class="rate-badge rb-hr">ハイパーレア</span><span>40%</span><span style="color:var(--muted)">攻+30</span></div>
+      <div class="rate-row"><span class="rate-badge rb-ur">ウルトラレア</span><span>25%</span><span style="color:var(--muted)">攻+80</span></div>
+      <div class="rate-row"><span class="rate-badge rb-lr">レジェンドレア</span><span>18%</span><span style="color:var(--muted)">攻+150</span></div>
+      <div class="rate-row"><span class="rate-badge rb-mlr">★ マスターレア</span><span>10%</span><span style="color:var(--muted)">攻+350</span></div>
+      <div class="rate-row"><span class="rate-badge rb-glr">★★ ゴッドレア</span><span>4.5%</span><span style="color:var(--muted)">攻+1,200</span></div>
+      <div class="rate-row"><span class="rate-badge rb-gr">★★★ 神話レア</span><span>2%</span><span style="color:var(--muted)">攻+30,000</span></div>
+      <div class="rate-row"><span class="rate-badge rb-tr">★★★★ 超越レア</span><span>0.5%</span><span style="color:var(--muted)">攻+20,000</span></div>
+    </div>
+    <div class="gacha-btns">
+      <button class="gacha-btn dia-btn" onclick="doDiaGacha(1)">単発<br><span class="cost">💎10</span></button>
+      <button class="gacha-btn dia-btn" onclick="doDiaGacha(10)">10連<br><span class="cost">💎100</span></button>
+      <button class="gacha-btn dia-btn" onclick="doDiaGacha(100)">100連<br><span class="cost">💎1K</span></button>
+      <button class="gacha-btn dia-btn" onclick="doDiaGacha(1000)">1000連<br><span class="cost">💎10K</span></button>
+      <button class="gacha-btn dia-btn" onclick="doDiaGacha(10000)">10000連<br><span class="cost">💎100K</span></button>
+    </div>
+    <div class="last-summary" id="last-dia-summary">まだダイヤガチャを引いていません</div>
+  </div>
+
+  <!-- Rainbow Gacha -->
+  <div class="gacha-pane" id="gpane-rainbow">
+    <div class="exchange-box rb-box">
+      <div class="exchange-title rb">🌈 ダイヤ → 虹石 変換</div>
+      <div class="exchange-row">
+        <input class="exchange-input rb-input" type="number" id="rb-exchange-input" placeholder="変換するダイヤ数" min="10000"><button class="exchange-btn rb" style="font-size:11px;padding:8px 8px" onclick="setRbMax()">最大</button>
+        <button class="exchange-btn rb" onclick="exchangeToRainbow()">変換</button>
+      </div>
+      <div class="exchange-hint">💎10,000 = 🌈1 ／ 端数切り捨て</div>
+    </div>
+    <div class="gacha-rates">
+      <div class="gacha-rates-title">🌈 虹石ガチャ 排出確率</div>
+      <div class="rate-row"><span class="rate-badge rb-rbr1">✦ プリズムレア</span><span>40%</span><span style="color:var(--muted)">攻+30,000</span></div>
+      <div class="rate-row"><span class="rate-badge rb-rbr2">✦✦ オーロラレア</span><span>28%</span><span style="color:var(--muted)">攻+100,000</span></div>
+      <div class="rate-row"><span class="rate-badge rb-rbr3">✦✦✦ セレスティアル</span><span>18%</span><span style="color:var(--muted)">攻+350,000</span></div>
+      <div class="rate-row"><span class="rate-badge rb-rbr4">✦✦✦✦ エターナル</span><span>10%</span><span style="color:var(--muted)">攻+1,200,000</span></div>
+      <div class="rate-row"><span class="rate-badge rb-rbr5">★ オムニゴッド</span><span>4%</span><span style="color:var(--muted)">攻+5,000,000</span></div>
+    </div>
+    <div class="gacha-btns">
+      <button class="gacha-btn rb-btn" onclick="doRbGacha(1)">単発<br><span class="cost">🌈1</span></button>
+      <button class="gacha-btn rb-btn" onclick="doRbGacha(10)">10連<br><span class="cost">🌈10</span></button>
+      <button class="gacha-btn rb-btn" onclick="doRbGacha(100)">100連<br><span class="cost">🌈100</span></button>
+      <button class="gacha-btn rb-btn" onclick="doRbGacha(1000)">1000連<br><span class="cost">🌈1K</span></button>
+      <button class="gacha-btn rb-btn" onclick="doRbGacha(10000)">10000連<br><span class="cost">🌈10K</span></button>
+    </div>
+    <div class="last-summary" id="last-rb-summary">まだ虹石ガチャを引いていません</div>
+  </div>
+</div>
+
+<!-- ═══ ZUKAN ═══ -->
+<div class="pane" id="pane-zukan">
+  <div class="zukan-grid" id="zukan-grid"></div>
+</div>
+
+
+<!-- S2 Tabs -->
+<div id="s2-tabs" style="display:none">
+  <div class="tabs" style="margin-bottom:10px">
+    <button class="tab active" data-s2tab="battle" onclick="s2SwitchTab('battle')">⚔️ バトル</button>
+    <button class="tab" data-s2tab="gacha" onclick="s2SwitchTab('gacha')">🎰 ガチャ</button>
+    <button class="tab" data-s2tab="zukan" onclick="s2SwitchTab('zukan')">📖 図鑑</button>
+  </div>
+</div>
+<!-- ═══ STAGE 2 ═══ -->
+<div id="stage2-content" style="display:none">
+
+  <!-- S2 Battle pane -->
+  <div class="pane active" id="s2-pane-battle">
+    <div class="boss-panel s2-boss-panel" style="background:linear-gradient(135deg,rgba(88,28,135,.15),rgba(30,27,75,.3));border-color:rgba(168,85,247,.3)">
+      <div class="boss-name-row">
+        <div>
+          <div id="s2-no-boss-msg" style="color:var(--muted);font-size:13px">← ボスを選択してください</div>
+          <div class="boss-name s2-boss-name" id="s2-boss-name" style="display:none;color:#c084fc;text-shadow:0 0 20px rgba(192,132,252,.4)"></div>
+        </div>
+        <div class="boss-emoji" id="s2-boss-emoji"></div>
+      </div>
+      <div id="s2-hp-bar-wrap" style="display:none">
+        <div class="hp-label"><span>HP</span><span id="s2-hp-text"></span></div>
+        <div class="hp-bar-track"><div class="hp-bar-fill" id="s2-hp-bar"></div></div>
+        <div class="clear-progress" id="s2-clear-progress"></div>
+      </div>
+    </div>
+    <button class="attack-btn" id="s2-attack-btn" onclick="s2Attack()" style="background:linear-gradient(135deg,#4c1d95,#7c3aed,#8b5cf6);box-shadow:0 4px 24px rgba(124,58,237,.4)">ATTACK</button>
+    <div class="log-box" id="s2-log" style="border-color:rgba(168,85,247,.3);color:#c084fc">ボスを選択して戦闘を開始！</div>
+    <div class="boss-list" id="s2-boss-list"></div>
+  </div>
+
+  <!-- S2 Gacha pane -->
+  <div class="pane" id="s2-pane-gacha">
+    <div class="gacha-type-tabs">
+      <button class="gacha-type-tab" id="s2-tab-void" style="color:#c084fc" onclick="s2SwitchGacha('void')">💜 虚空</button>
+      <button class="gacha-type-tab active" id="s2-tab-chaos" style="border-color:#a855f7;color:#c084fc;background:rgba(168,85,247,.1)" onclick="s2SwitchGacha('chaos')">🌀 混沌</button>
+      <button class="gacha-type-tab" id="s2-tab-god" style="color:#fbbf24" onclick="s2SwitchGacha('god')">👑 神格</button>
+    </div>
+
+    <!-- Void Gacha -->
+    <div class="gacha-pane" id="s2-gpane-void">
+      <div class="exchange-box" style="background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:14px;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:#c084fc;margin-bottom:10px">💜 🌈虹石 → 💠虚空石 変換</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="exchange-input" type="number" id="void-exchange-input" placeholder="変換する虹石数" min="100" style="border-color:rgba(168,85,247,.3)">
+          <button onclick="setVoidMax()" style="padding:8px 8px;border-radius:7px;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.1);color:#c084fc;font-size:11px;cursor:pointer">最大</button>
+          <button onclick="exchangeToVoid()" style="padding:8px 12px;border-radius:7px;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.1);color:#c084fc;font-size:13px;cursor:pointer">変換</button>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px">🌈100 = 💠1 ／ 端数切り捨て</div>
+      </div>
+      <div class="gacha-rates">
+        <div class="gacha-rates-title">💜 虚空ガチャ 排出確率</div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.4)">虚空R</span><span>40%</span><span style="color:var(--muted)">攻+50,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(139,92,246,.2);color:#a78bfa;border:1px solid rgba(139,92,246,.5)">虚空SR</span><span>28%</span><span style="color:var(--muted)">攻+200,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(109,40,217,.2);color:#8b5cf6;border:1px solid rgba(109,40,217,.5)">虚空UR</span><span>18%</span><span style="color:var(--muted)">攻+800,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(79,70,229,.2);color:#818cf8;border:1px solid rgba(79,70,229,.5);box-shadow:0 0 6px rgba(79,70,229,.3)">虚空LR</span><span>10%</span><span style="color:var(--muted)">攻+3,000,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(49,46,129,.25);color:#e0e7ff;border:1px solid rgba(99,102,241,.6);box-shadow:0 0 10px rgba(99,102,241,.4)">★ 虚空神話</span><span>4%</span><span style="color:var(--muted)">攻+15,000,000</span></div>
+      </div>
+      <div class="gacha-btns">
+        <button class="gacha-btn" style="color:#c084fc" onclick="doVoidGacha(1)">単発<br><span style="color:#c084fc;font-weight:700;font-size:9px">💠1</span></button>
+        <button class="gacha-btn" style="color:#c084fc" onclick="doVoidGacha(10)">10連<br><span style="color:#c084fc;font-weight:700;font-size:9px">💠10</span></button>
+        <button class="gacha-btn" style="color:#c084fc" onclick="doVoidGacha(100)">100連<br><span style="color:#c084fc;font-weight:700;font-size:9px">💠100</span></button>
+        <button class="gacha-btn" style="color:#c084fc" onclick="doVoidGacha(1000)">1000連<br><span style="color:#c084fc;font-weight:700;font-size:9px">💠1K</span></button>
+        <button class="gacha-btn" style="color:#c084fc" onclick="doVoidGacha(10000)">10000連<br><span style="color:#c084fc;font-weight:700;font-size:9px">💠10K</span></button>
+      </div>
+      <div class="last-summary" id="last-void-summary">まだ虚空ガチャを引いていません</div>
+    </div>
+
+    <!-- Chaos Gacha -->
+    <div class="gacha-pane active" id="s2-gpane-chaos">
+      <div class="exchange-box" style="background:rgba(99,102,241,.05);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:14px;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:#818cf8;margin-bottom:10px">🌀 💠虚空石 → 🌀混沌石 変換</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="exchange-input" type="number" id="chaos-exchange-input" placeholder="変換する虚空石数" min="100" style="border-color:rgba(99,102,241,.3)">
+          <button onclick="setChaosMax()" style="padding:8px 8px;border-radius:7px;border:1px solid rgba(99,102,241,.4);background:rgba(99,102,241,.1);color:#818cf8;font-size:11px;cursor:pointer">最大</button>
+          <button onclick="exchangeToChaos()" style="padding:8px 12px;border-radius:7px;border:1px solid rgba(99,102,241,.4);background:rgba(99,102,241,.1);color:#818cf8;font-size:13px;cursor:pointer">変換</button>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px">💠100 = 🌀1 ／ 端数切り捨て</div>
+      </div>
+      <div class="gacha-rates">
+        <div class="gacha-rates-title">🌀 混沌ガチャ 排出確率</div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(99,102,241,.15);color:#818cf8;border:1px solid rgba(99,102,241,.4)">混沌R</span><span>38%</span><span style="color:var(--muted)">攻+500,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(79,70,229,.2);color:#6366f1;border:1px solid rgba(79,70,229,.5)">混沌SR</span><span>26%</span><span style="color:var(--muted)">攻+2,000,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(67,56,202,.2);color:#4f46e5;border:1px solid rgba(67,56,202,.5)">混沌UR</span><span>18%</span><span style="color:var(--muted)">攻+8,000,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(55,48,163,.2);color:#c7d2fe;border:1px solid rgba(55,48,163,.6);box-shadow:0 0 8px rgba(55,48,163,.3)">混沌LR</span><span>12%</span><span style="color:var(--muted)">攻+30,000,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(49,46,129,.3);color:#e0e7ff;border:1px solid rgba(99,102,241,.7);box-shadow:0 0 12px rgba(99,102,241,.5)">★★ 混沌神</span><span>5%</span><span style="color:var(--muted)">攻+120,000,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(30,27,75,.4);color:#fff;border:1px solid rgba(129,140,248,.8);box-shadow:0 0 16px rgba(129,140,248,.6);animation:rbShine 2s infinite">★★★ 虚無神</span><span>1%</span><span style="color:var(--muted)">攻+600,000,000</span></div>
+      </div>
+      <div class="gacha-btns">
+        <button class="gacha-btn" style="color:#818cf8" onclick="doChaosGacha(1)">単発<br><span style="color:#818cf8;font-weight:700;font-size:9px">🌀1</span></button>
+        <button class="gacha-btn" style="color:#818cf8" onclick="doChaosGacha(10)">10連<br><span style="color:#818cf8;font-weight:700;font-size:9px">🌀10</span></button>
+        <button class="gacha-btn" style="color:#818cf8" onclick="doChaosGacha(100)">100連<br><span style="color:#818cf8;font-weight:700;font-size:9px">🌀100</span></button>
+        <button class="gacha-btn" style="color:#818cf8" onclick="doChaosGacha(1000)">1000連<br><span style="color:#818cf8;font-weight:700;font-size:9px">🌀1K</span></button>
+        <button class="gacha-btn" style="color:#818cf8" onclick="doChaosGacha(10000)">10000連<br><span style="color:#818cf8;font-weight:700;font-size:9px">🌀10K</span></button>
+      </div>
+      <div class="last-summary" id="last-chaos-summary">まだ混沌ガチャを引いていません</div>
+    </div>
+
+    <!-- God Gacha -->
+    <div class="gacha-pane" id="s2-gpane-god">
+      <div class="exchange-box" style="background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:14px;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:#fbbf24;margin-bottom:10px">👑 🌀混沌石 → 👑神格石 変換</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="exchange-input" type="number" id="god-exchange-input" placeholder="変換する混沌石数" min="100" style="border-color:rgba(251,191,36,.3)">
+          <button onclick="setGodMax()" style="padding:8px 8px;border-radius:7px;border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.1);color:#fbbf24;font-size:11px;cursor:pointer">最大</button>
+          <button onclick="exchangeToGod()" style="padding:8px 12px;border-radius:7px;border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.1);color:#fbbf24;font-size:13px;cursor:pointer">変換</button>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px">🌀100 = 👑1 ／ 端数切り捨て</div>
+      </div>
+      <div class="gacha-rates">
+        <div class="gacha-rates-title">👑 神格ガチャ 排出確率</div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.4)">神格R</span><span>35%</span><span style="color:var(--muted)">攻+5,000,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.5)">神格SR</span><span>26%</span><span style="color:var(--muted)">攻+20,000,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(217,119,6,.18);color:#d97706;border:1px solid rgba(217,119,6,.5)">神格UR</span><span>18%</span><span style="color:var(--muted)">攻+80,000,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(180,83,9,.2);color:#fed7aa;border:1px solid rgba(180,83,9,.6);box-shadow:0 0 8px rgba(180,83,9,.3)">神格LR</span><span>13%</span><span style="color:var(--muted)">攻+300,000,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(120,53,15,.3);color:#fef3c7;border:1px solid rgba(251,191,36,.7);box-shadow:0 0 12px rgba(251,191,36,.5)">★ 神格神話</span><span>6%</span><span style="color:var(--muted)">攻+1,200,000,000</span></div>
+        <div class="rate-row"><span class="rate-badge" style="background:rgba(69,26,3,.4);color:#fff;border:1px solid rgba(253,224,71,.9);box-shadow:0 0 18px rgba(253,224,71,.7);animation:rbShine 1.5s infinite">★★ 創造神</span><span>2%</span><span style="color:var(--muted)">攻+6,000,000,000</span></div>
+      </div>
+      <div class="gacha-btns">
+        <button class="gacha-btn" style="color:#fbbf24" onclick="doGodGacha(1)">単発<br><span style="color:#fbbf24;font-weight:700;font-size:9px">👑1</span></button>
+        <button class="gacha-btn" style="color:#fbbf24" onclick="doGodGacha(10)">10連<br><span style="color:#fbbf24;font-weight:700;font-size:9px">👑10</span></button>
+        <button class="gacha-btn" style="color:#fbbf24" onclick="doGodGacha(100)">100連<br><span style="color:#fbbf24;font-weight:700;font-size:9px">👑100</span></button>
+        <button class="gacha-btn" style="color:#fbbf24" onclick="doGodGacha(1000)">1000連<br><span style="color:#fbbf24;font-weight:700;font-size:9px">👑1K</span></button>
+        <button class="gacha-btn" style="color:#fbbf24" onclick="doGodGacha(10000)">10000連<br><span style="color:#fbbf24;font-weight:700;font-size:9px">👑10K</span></button>
+      </div>
+      <div class="last-summary" id="last-god-summary">まだ神格ガチャを引いていません</div>
+    </div>
+  </div>
+
+  <!-- S2 Zukan pane -->
+  <div class="pane" id="s2-pane-zukan">
+    <div class="zukan-grid" id="s2-zukan-grid"></div>
+  </div>
+
+  <!-- S2 Tabs (inside stage2 content) -->
+  <div style="order:-1" id="s2-tabs-wrap"></div>
+</div>
+
+<!-- ═══ ADMIN ═══ -->
+<div class="pane" id="pane-admin">
+  <div id="admin-lock">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;margin-bottom:10px">
+      <div style="font-size:32px;margin-bottom:12px">🔐</div>
+      <div style="font-family:'Cinzel',serif;font-size:14px;color:var(--gold);letter-spacing:2px;margin-bottom:16px">ADMIN ACCESS</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">パスワードを入力してください</div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <input id="admin-pw-input" type="password" placeholder="Password"
+          style="background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:14px;padding:8px 14px;outline:none;width:160px;text-align:center;letter-spacing:4px"
+          onkeydown="if(event.key==='Enter')checkAdminPw()">
+        <button onclick="checkAdminPw()"
+          style="padding:8px 16px;border-radius:7px;border:1px solid var(--gold);background:rgba(240,180,41,.1);color:var(--gold);font-family:'Noto Sans JP',sans-serif;font-size:13px;cursor:pointer">認証</button>
+      </div>
+      <div id="pw-error" style="color:var(--red2);font-size:11px;margin-top:10px;display:none">❌ パスワードが違います</div>
+    </div>
+  </div>
+
+  <div id="admin-panel" style="display:none">
+    <div style="background:var(--panel);border:1px solid rgba(255,100,100,.3);border-radius:12px;padding:16px;margin-bottom:10px">
+      <div style="font-family:'Cinzel',serif;font-size:13px;color:var(--red2);letter-spacing:2px;margin-bottom:14px;text-align:center">🔧 CHEAT PANEL</div>
+
+      <!-- コイン追加 -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">🪙 コイン追加</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="cheat-btn" onclick="addResource('coin',10000)">+10K</button>
+          <button class="cheat-btn" onclick="addResource('coin',1000000)">+1M</button>
+          <button class="cheat-btn" onclick="addResource('coin',1000000000)">+1B</button>
+          <button class="cheat-btn" onclick="setResource('coin',prompt('コイン数を入力'))">任意</button>
+        </div>
+      </div>
+
+      <!-- ダイヤ追加 -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">💎 ダイヤ追加</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="cheat-btn" onclick="addResource('diamond',100)">+100</button>
+          <button class="cheat-btn" onclick="addResource('diamond',10000)">+10K</button>
+          <button class="cheat-btn" onclick="addResource('diamond',1000000)">+1M</button>
+          <button class="cheat-btn" onclick="setResource('diamond',prompt('ダイヤ数を入力'))">任意</button>
+        </div>
+      </div>
+
+      <!-- 虹石追加 -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">🌈 虹石追加</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="cheat-btn" onclick="addResource('rainbow',10)">+10</button>
+          <button class="cheat-btn" onclick="addResource('rainbow',1000)">+1K</button>
+          <button class="cheat-btn" onclick="addResource('rainbow',100000)">+100K</button>
+          <button class="cheat-btn" onclick="setResource('rainbow',prompt('虹石数を入力'))">任意</button>
+        </div>
+      </div>
+
+      <!-- 攻撃力 -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">⚔️ 攻撃力設定</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="cheat-btn" onclick="addResource('atk',10000)">+10K</button>
+          <button class="cheat-btn" onclick="addResource('atk',1000000)">+1M</button>
+          <button class="cheat-btn" onclick="setResource('atk',prompt('攻撃力を入力'))">任意</button>
+        </div>
+      </div>
+
+      <!-- ボス全解放 -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">👾 ボス管理</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="cheat-btn cheat-danger" onclick="unlockAllBosses()">全ボス解放</button>
+          <button class="cheat-btn cheat-danger" onclick="lockAllBosses()">全ボスリセット</button>
+        </div>
+      </div>
+
+      <!-- データリセット -->
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px">⚠️ データ管理</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="cheat-btn cheat-danger" onclick="resetAll()">全データリセット</button>
+          <button class="cheat-btn" onclick="lockAdmin()">🔒 ログアウト</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- Modal -->
+<div class="modal-overlay" id="gacha-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="result-grid" id="result-grid"></div>
+    <div class="result-summary" id="result-summary"></div>
+    <button class="modal-close" id="modal-close-btn" onclick="closeModal()">CLOSE</button>
+  </div>
+</div>
+
+<!-- Boss Rush Modal -->
+<div class="rush-overlay" id="rush-overlay">
+  <div class="rush-box">
+    <div id="rush-intro">
+      <div style="font-family:'Cinzel',serif;font-size:20px;font-weight:900;color:var(--red2);text-align:center;letter-spacing:2px;margin-bottom:10px">🏆 BOSS RUSH</div>
+      <div class="rush-preview">
+        ⏱️ 制限時間：<span>60秒</span><br>
+        💥 ボスを倒すほど<span>体力が上昇</span><br>
+        🏅 撃破数で<span>報酬が変わる</span><br>
+        &nbsp;&nbsp;5体以上 → 🪙ボーナス<br>
+        &nbsp;&nbsp;10体以上 → 🪙+💎<br>
+        &nbsp;&nbsp;20体以上 → 🪙+💎+🌈<br>
+        &nbsp;&nbsp;50体以上 → 🌈大量獲得
+      </div>
+      <button class="rush-start-btn" onclick="startBossRush()">⚔️ START RUSH</button>
+      <button onclick="closeRush()" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-family:'Noto Sans JP',sans-serif;font-size:13px;cursor:pointer;margin-top:8px">閉じる</button>
+    </div>
+    <div id="rush-battle" style="display:none">
+      <div class="rush-header">
+        <div class="rush-title">RUSH</div>
+        <div class="rush-timer" id="rush-timer">60</div>
+      </div>
+      <div class="rush-boss-name" id="rush-boss-name"></div>
+      <div class="rush-hp-track"><div class="rush-hp-fill" id="rush-hp-fill" style="width:100%"></div></div>
+      <div style="font-size:10px;color:var(--muted);text-align:right;margin-bottom:10px" id="rush-hp-text"></div>
+      <div class="rush-stats">
+        <div class="rush-stat"><div style="font-size:10px;color:var(--muted)">撃破数</div><div class="rush-stat-val" id="rush-kills">0</div></div>
+        <div class="rush-stat"><div style="font-size:10px;color:var(--muted)">Wave</div><div class="rush-stat-val" id="rush-wave">1</div></div>
+      </div>
+      <button class="rush-atk-btn" id="rush-atk-btn" onclick="rushAttack()">ATTACK</button>
+    </div>
+    <div id="rush-result" style="display:none">
+      <div class="rush-result">
+        <div class="rush-result-title">🏆 RESULT</div>
+        <div class="rush-result-kills" id="result-kills">0</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">体撃破</div>
+        <div class="rush-result-rewards" id="result-rewards"></div>
+        <button class="rush-close-btn" onclick="closeRush()">CLOSE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════
+   BOSS DATA
+═══════════════════════════════ */
+const BOSSES_DEF = [
+  // Normal (unlocked sequentially)
+  {name:"スライムキング",   emoji:"🟢", maxHp:100,         drop:[20,30]            },
+  {name:"ダークウルフ",     emoji:"🐺", maxHp:250,         drop:[60,80]            },
+  {name:"フレイムドラゴン", emoji:"🐉", maxHp:450,         drop:[120,160]          },
+  {name:"虚無の王",         emoji:"👁️", maxHp:800,         drop:[250,350]          },
+  {name:"アビスナイト",     emoji:"⚫", maxHp:1200,        drop:[400,500]          },
+  {name:"ヘルゴーレム",     emoji:"🪨", maxHp:1800,        drop:[600,750]          },
+  {name:"カオスビースト",   emoji:"🦁", maxHp:2600,        drop:[900,1100]         },
+  {name:"ネクロマンサー",   emoji:"💀", maxHp:3500,        drop:[1300,1600]        },
+  {name:"古代竜バハムート", emoji:"🔱", maxHp:4800,        drop:[1800,2200]        },
+  {name:"虚空の監視者",     emoji:"🌀", maxHp:6500,        drop:[2500,3000]        },
+  {name:"星喰らい",         emoji:"⭐", maxHp:8500,        drop:[3500,4200]        },
+  {name:"時空破壊者",       emoji:"⏳", maxHp:11000,       drop:[5000,6000]        },
+  {name:"終焉の神",         emoji:"☠️", maxHp:15000,       drop:[8000,10000]       },
+  {name:"創世の超越者",     emoji:"✨", maxHp:22000,       drop:[12000,15000]      },
+  // Extreme (need 3 clears each)
+  {name:"奈落の破壊神",     emoji:"🕳️", maxHp:50000,       drop:[10000,15000], isExtreme:true},
+  {name:"星滅竜",           emoji:"💫", maxHp:120000,      drop:[20000,30000],  isExtreme:true},
+  {name:"時空喰い",         emoji:"🌌", maxHp:300000,      drop:[50000,70000],  isExtreme:true},
+  {name:"深淵皇帝",         emoji:"👑", maxHp:700000,      drop:[100000,150000],isExtreme:true},
+  {name:"虚空神",           emoji:"🌑", maxHp:1500000,     drop:[200000,300000],isExtreme:true},
+  {name:"終焉龍",           emoji:"🔥", maxHp:3000000,     drop:[400000,600000],isExtreme:true},
+  {name:"概念破壊者",       emoji:"💭", maxHp:6000000,     drop:[800000,1200000], isExtreme:true},
+  {name:"無限王",           emoji:"♾️", maxHp:12000000,    drop:[1500000,2000000],isExtreme:true},
+  {name:"創世災厄",         emoji:"🌋", maxHp:25000000,    drop:[3000000,4000000],isExtreme:true},
+  {name:"絶対神",           emoji:"🌟", maxHp:50000000,    drop:[5000000,8000000],isExtreme:true},
+  // New 8 super bosses
+  {name:"虹滅神ナーガ",     emoji:"🌈", maxHp:120000000,   drop:[13000000,18000000], isExtreme:true},
+  {name:"宇宙喰らい",       emoji:"🪐", maxHp:300000000,   drop:[18000000,23000000], isExtreme:true},
+  {name:"時間消滅者",       emoji:"⌛", maxHp:700000000,   drop:[23000000,28000000], isExtreme:true},
+  {name:"原初の悪魔",       emoji:"😈", maxHp:1500000000,  drop:[28000000,33000000], isExtreme:true},
+  {name:"星辰の破壊主",     emoji:"💠", maxHp:3500000000,  drop:[33000000,38000000], isExtreme:true},
+  {name:"無限混沌体",       emoji:"🔮", maxHp:8000000000,  drop:[38000000,43000000], isExtreme:true},
+  {name:"次元崩壊神",       emoji:"🌀", maxHp:18000000000, drop:[43000000,48000000], isExtreme:true},
+  {name:"全知全能の神",     emoji:"👼", maxHp:40000000000, drop:[48000000,53000000], isExtreme:true},
+];
+
+// Runtime boss objects
+const BOSSES = BOSSES_DEF.map((b, i) => ({
+  ...b,
+  unlocked: i === 0,
+  clearCount: 0,
+}));
+
+/* ═══════════════════════════════
+   GACHA TABLES
+═══════════════════════════════ */
+const COIN_GACHA = [
+  {key:"r",   label:"レア",          cls:"r",   atk:1,       rate:50},
+  {key:"sr",  label:"スーパーレア",  cls:"sr",  atk:3,       rate:25},
+  {key:"hr",  label:"ハイパーレア",  cls:"hr",  atk:5,       rate:15},
+  {key:"ur",  label:"ウルトラレア",  cls:"ur",  atk:10,      rate:8 },
+  {key:"lr",  label:"レジェンドレア",cls:"lr",  atk:15,      rate:2 },
+];
+const DIA_GACHA = [
+  {key:"dhr", label:"ハイパーレア",  cls:"hr",  atk:30,      rate:40  },
+  {key:"dur", label:"ウルトラレア",  cls:"ur",  atk:80,      rate:25  },
+  {key:"dlr", label:"レジェンドレア",cls:"lr",  atk:150,     rate:18  },
+  {key:"mlr", label:"マスターレア",  cls:"mlr", atk:350,     rate:10  },
+  {key:"glr", label:"ゴッドレア",    cls:"glr", atk:1200,    rate:4.5 },
+  {key:"gr",  label:"神話レア",      cls:"gr",  atk:5000,    rate:2   },
+  {key:"tr",  label:"超越レア",      cls:"tr",  atk:20000,   rate:0.5 },
+];
+const RB_GACHA = [
+  {key:"rbr1",label:"プリズムレア",  cls:"rbr1",atk:30000,   rate:40},
+  {key:"rbr2",label:"オーロラレア",  cls:"rbr2",atk:100000,  rate:28},
+  {key:"rbr3",label:"セレスティアル",cls:"rbr3",atk:350000,  rate:18},
+  {key:"rbr4",label:"エターナル",    cls:"rbr4",atk:1200000, rate:10},
+  {key:"rbr5",label:"オムニゴッド",  cls:"rbr5",atk:5000000, rate:4},
+];
+
+/* ═══════════════════════════════
+   STATE
+═══════════════════════════════ */
+let coin = 0, diamond = 0, rainbow = 0;
+let rawAtk = 1; // internal; displayed atk is softcapped
+let currentBoss = null, hp = 0;
+let pinnedBoss = null; // index of pinned boss (shown at top)
+
+const zukan = {};
+[...COIN_GACHA, ...DIA_GACHA, ...RB_GACHA].forEach(g => zukan[g.key] = 0);
+
+function getAtk() { return rawAtk; }
+
+/* ═══════════════════════════════
+   TABS
+═══════════════════════════════ */
+function switchTab(name) {
+  // tabはdata-tab属性で識別、インデックスに依存しない
+  document.querySelectorAll('.tab').forEach(t => {
+    if(t.dataset.tab) t.classList.toggle('active', t.dataset.tab === name);
+  });
+  ['battle','gacha','zukan','admin'].forEach(id => {
+    const pane = document.getElementById('pane-'+id);
+    if(pane) pane.classList.toggle('active', id === name);
+  });
+}
+function switchGachaType(type) {
+  document.querySelectorAll('.gacha-type-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.gacha-pane').forEach(p => p.classList.remove('active'));
+  const map = {coin:'coin-tab', diamond:'dia-tab', rainbow:'rb-tab'};
+  document.querySelector('.'+map[type]).classList.add('active');
+  document.getElementById('gpane-'+type).classList.add('active');
+}
+
+/* ═══════════════════════════════
+   EXCHANGE
+═══════════════════════════════ */
+function setDiaMax() {
+  const max = Math.floor(coin / 1000) * 1000;
+  document.getElementById('dia-exchange-input').value = max > 0 ? max : '';
+}
+function setRbMax() {
+  const max = Math.floor(diamond / 10000) * 10000;
+  document.getElementById('rb-exchange-input').value = max > 0 ? max : '';
+}
+function exchangeToDiamond() {
+  const amt = Math.floor(parseInt(document.getElementById('dia-exchange-input').value) || 0);
+  if (amt < 1000) { showToast('🪙 最低1,000コイン必要です'); return; }
+  if (coin < amt)  { showToast('💸 コインが足りない！'); return; }
+  const gained = Math.floor(amt / 1000);
+  coin -= gained * 1000; diamond += gained;
+  document.getElementById('dia-exchange-input').value = '';
+  updateUI(); saveGame(); showToast(`💎 +${fmtNum(gained)} ダイヤ獲得！`);
+}
+function exchangeToRainbow() {
+  const amt = Math.floor(parseInt(document.getElementById('rb-exchange-input').value) || 0);
+  if (amt < 10000) { showToast('💎 最低10,000ダイヤ必要です'); return; }
+  if (diamond < amt) { showToast('💎 ダイヤが足りない！'); return; }
+  const gained = Math.floor(amt / 10000);
+  diamond -= gained * 10000; rainbow += gained;
+  document.getElementById('rb-exchange-input').value = '';
+  updateUI(); saveGame(); showToast(`🌈 +${gained} 虹石獲得！`);
+}
+
+/* ═══════════════════════════════
+   BOSS LIST (with pin)
+═══════════════════════════════ */
+function renderBossList() {
+  // Build ordered list: pinned boss first (if set), then rest in order
+  let order = BOSSES.map((_, i) => i);
+  if (pinnedBoss !== null) {
+    order = [pinnedBoss, ...order.filter(i => i !== pinnedBoss)];
+  }
+
+  // Pinned banner
+  const banner = document.getElementById('pinned-banner');
+  if (pinnedBoss !== null && BOSSES[pinnedBoss].unlocked) {
+    banner.classList.add('visible');
+    document.getElementById('pinned-name').textContent = BOSSES[pinnedBoss].emoji + ' ' + BOSSES[pinnedBoss].name;
+  } else {
+    banner.classList.remove('visible');
+  }
+
+  document.getElementById('boss-list').innerHTML = order.map(i => {
+    const b = BOSSES[i];
+    if (!b.unlocked) return `<div class="boss-btn-wrap"><button class="boss-btn" disabled>🔒 ???</button></div>`;
+    const active = currentBoss === i ? 'active-boss' : '';
+    const ext = b.isExtreme ? `<span class="extreme-tag">3連(${b.clearCount}/3)</span> ` : '';
+    const pinned = pinnedBoss === i;
+    return `<div class="boss-btn-wrap">
+      <button class="pin-btn ${pinned?'pinned':''}" onclick="togglePin(${i})">${pinned?'📌':'📍'}</button>
+      <button class="boss-btn ${active}" onclick="selectBoss(${i})">
+        ${b.emoji} ${b.name}
+        <div class="boss-hp-tag">${ext}HP ${fmtNum(b.maxHp)}</div>
+        <div class="boss-drop">🪙${fmtNum(b.drop[0])}〜${fmtNum(b.drop[1])}</div>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function togglePin(i) {
+  pinnedBoss = (pinnedBoss === i) ? null : i;
+  renderBossList(); saveGame();
+}
+
+function selectBoss(i) {
+  currentBoss = i; hp = BOSSES[i].maxHp;
+  updateBossPanel(); renderBossList();
+  document.getElementById('log').textContent = `${BOSSES[i].name} に挑戦！`;
+}
+
+function updateBossPanel() {
+  if (currentBoss === null) return;
+  const b = BOSSES[currentBoss];
+  document.getElementById('no-boss-msg').style.display = 'none';
+  const nameEl = document.getElementById('boss-name');
+  nameEl.style.display = 'block';
+  nameEl.textContent = b.emoji + ' ' + b.name;
+  document.getElementById('hp-bar-wrap').style.display = 'block';
+  const pct = Math.max(0, hp / b.maxHp * 100);
+  const bar = document.getElementById('hp-bar');
+  bar.style.width = pct + '%';
+  bar.className = 'hp-bar-fill' + (pct > 50 ? '' : pct > 25 ? ' mid' : ' low');
+  document.getElementById('hp-text').textContent = fmtNum(hp) + ' / ' + fmtNum(b.maxHp);
+  document.getElementById('clear-progress').innerHTML = b.isExtreme
+    ? [0,1,2].map(j => `<div class="clear-pip ${j < b.clearCount ? 'done' : ''}"></div>`).join('')
+    : '';
+}
+
+/* ═══════════════════════════════
+   BATTLE
+═══════════════════════════════ */
+function attack() {
+  if (currentBoss === null || hp <= 0) {
+    const btn = document.getElementById('attack-btn');
+    btn.classList.add('shake');
+    setTimeout(() => btn.classList.remove('shake'), 200); return;
+  }
+  const eff = getAtk();
+  hp = Math.max(0, hp - eff);
+  updateBossPanel();
+  spawnDmg('-' + fmtNum(eff));
+  if (hp === 0) {
+    const b = BOSSES[currentBoss];
+    const drop = rndInt(b.drop[0], b.drop[1]);
+    coin += drop;
+    b.clearCount++;
+    const needed = b.isExtreme ? 3 : 1;
+    if (b.clearCount >= needed && BOSSES[currentBoss+1] && !BOSSES[currentBoss+1].unlocked) {
+      BOSSES[currentBoss+1].unlocked = true;
+      if (!unlockedBossIds.has(BOSSES[currentBoss+1].name)) {
+        unlockedBossIds.add(BOSSES[currentBoss+1].name);
+        showToast(`🔓 ${BOSSES[currentBoss+1].name} 解放！`);
+      }
+    }
+    document.getElementById('log').textContent = `✨ ${b.name} 撃破！ 🪙 +${fmtNum(drop)}`;
+    updateUI(); renderBossList(); saveGame();
+  }
+}
+function spawnDmg(text) {
+  const el = document.createElement('div');
+  el.className = 'dmg-float'; el.textContent = text;
+  const rect = document.getElementById('attack-btn').getBoundingClientRect();
+  el.style.left = (rect.left + rect.width/2 - 30) + 'px';
+  el.style.top  = (rect.top - 10) + 'px';
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+/* ═══════════════════════════════
+   GACHA CORE
+═══════════════════════════════ */
+function rollFrom(table) {
+  const r = Math.random() * 100; let cum = 0;
+  for (const g of table) { cum += g.rate; if (r < cum) return g; }
+  return table[table.length-1];
+}
+
+function runGacha(table, times, cost, hasCurrency, deduct, summaryId, type) {
+  if (!hasCurrency(cost)) {
+    const labels = {coin:'💸 コインが足りない！', diamond:'💎 ダイヤが足りない！', rainbow:'🌈 虹石が足りない！'};
+    showToast(labels[type]); return;
+  }
+  deduct(cost);
+  const results = []; let totalAtk = 0;
+  for (let i = 0; i < times; i++) {
+    const g = rollFrom(table);
+    results.push(g); zukan[g.key]++; rawAtk += g.atk; totalAtk += g.atk;
+  }
+  updateUI(); updateZukan(); saveGame();
+  const counts = {}; table.forEach(g => counts[g.key]=0); results.forEach(g=>counts[g.key]++);
+  const sumParts = table.filter(g=>counts[g.key]>0).map(g=>`${g.label}×${counts[g.key]}`);
+  document.getElementById(summaryId).innerHTML =
+    `前回：${sumParts.join(' / ')}<br>攻撃力 <span style="color:var(--gold2)">+${fmtNum(totalAtk)}</span> 獲得`;
+  showGachaModal(results, totalAtk, table, type);
+}
+
+function doCoinGacha(t)   { runGacha(COIN_GACHA, t, t*100,     c=>coin>=c,    c=>{coin-=c},    'last-coin-summary','coin'); }
+function doDiaGacha(t)    { runGacha(DIA_GACHA,  t, t*10,      c=>diamond>=c, c=>{diamond-=c}, 'last-dia-summary', 'diamond'); }
+function doRbGacha(t)     { runGacha(RB_GACHA,   t, t*1,       c=>rainbow>=c, c=>{rainbow-=c}, 'last-rb-summary',  'rainbow'); }
+
+/* ═══════════════════════════════
+   GACHA MODAL
+═══════════════════════════════ */
+function showGachaModal(results, totalAtk, table, type) {
+  const titles = {coin:'🎰 COIN GACHA RESULT', diamond:'💎 DIAMOND GACHA RESULT', rainbow:'🌈 RAINBOW GACHA RESULT'};
+  const titleCls = {coin:'coin-title', diamond:'dia-title', rainbow:'rb-title'};
+  const closeCls = {coin:'coin-close', diamond:'dia-close', rainbow:'rb-close'};
+  const icons    = {coin:'⚔️', diamond:'💎', rainbow:'🌈'};
+  document.getElementById('modal-title').textContent  = titles[type];
+  document.getElementById('modal-title').className    = 'modal-title '+titleCls[type];
+  document.getElementById('modal-close-btn').className= 'modal-close '+closeCls[type];
+
+  const grid = document.getElementById('result-grid');
+  if (results.length <= 10) {
+    grid.style.gridTemplateColumns = results.length === 1 ? '110px' : 'repeat(5,1fr)';
+    grid.style.justifyContent = results.length === 1 ? 'center' : '';
+    grid.innerHTML = results.map((g,i)=>
+      `<div class="result-card ${g.cls}" style="animation-delay:${i*.05}s;font-size:${results.length===1?'12':'8'}px">
+        <div style="font-size:${results.length===1?'26':'13'}px">${icons[type]}</div>
+        <div>${g.label}</div>
+        <div style="color:var(--gold);font-size:8px">+${fmtNum(g.atk)}</div>
+      </div>`).join('');
+  } else {
+    grid.style.gridTemplateColumns = `repeat(${Math.min(table.length,5)},1fr)`;
+    grid.style.justifyContent = '';
+    const counts = {}; results.forEach(g=>counts[g.key]=(counts[g.key]||0)+1);
+    grid.innerHTML = table.map((g,i)=>
+      `<div class="result-card ${g.cls}" style="animation-delay:${i*.07}s;aspect-ratio:.8;font-size:9px">
+        <div style="font-size:15px">×${counts[g.key]||0}</div>
+        <div>${g.label}</div>
+        <div style="color:var(--gold);font-size:8px">+${fmtNum((counts[g.key]||0)*g.atk)}</div>
+      </div>`).join('');
+  }
+  document.getElementById('result-summary').innerHTML =
+    `合計攻撃力 <span>+${fmtNum(totalAtk)}</span> 獲得<br>現在の攻撃力: <span>${fmtNum(getAtk())}</span>`;
+  document.getElementById('gacha-modal').classList.add('open');
+}
+function closeModal() { document.getElementById('gacha-modal').classList.remove('open'); }
+
+/* ═══════════════════════════════
+   ZUKAN
+═══════════════════════════════ */
+function updateZukan() {
+  const el = document.getElementById('zukan-grid');
+  const section = (label) => `<div class="zukan-section-label">${label}</div>`;
+  const card = (g) => {
+    const cnt = zukan[g.key]||0;
+    return `<div class="zukan-card">
+      <div class="zukan-card-header"><span class="rate-badge rb-${g.cls}">${g.label}</span><span class="zukan-count">×${cnt}</span></div>
+      <div class="zukan-atk">${fmtNum(cnt*g.atk)}</div>
+      <div class="zukan-atk-label">累計攻撃力</div>
+    </div>`;
+  };
+  el.innerHTML =
+    section('🪙 コインガチャ') + COIN_GACHA.map(card).join('') +
+    section('💎 ダイヤガチャ') + DIA_GACHA.map(card).join('') +
+    section('🌈 虹石ガチャ')   + RB_GACHA.map(card).join('');
+}
+
+/* ═══════════════════════════════
+   UI HELPERS
+═══════════════════════════════ */
+function updateUI() {
+  document.getElementById('atk-val').textContent  = fmtNum(getAtk());
+  document.getElementById('coin-val').textContent = fmtNum(coin);
+  document.getElementById('dia-val').textContent  = fmtNum(diamond);
+  document.getElementById('rb-val').textContent   = fmtNum(rainbow);
+}
+function fmtNum(n) {
+  n = Math.floor(n);
+  if (n >= 1e15) return (n/1e15).toFixed(2)+'Q';
+  if (n >= 1e12) return (n/1e12).toFixed(2)+'T';
+  if (n >= 1e9)  return (n/1e9).toFixed(2)+'B';
+  if (n >= 1e6)  return (n/1e6).toFixed(2)+'M';
+  if (n >= 1e4)  return (n/1e3).toFixed(1)+'K';
+  return n.toLocaleString();
+}
+function rndInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2600);
+}
+
+/* ═══════════════════════════════
+   SAVE / LOAD  (v4)
+═══════════════════════════════ */
+function saveGame() {
+  try {
+    localStorage.setItem('tapBossV4', JSON.stringify({
+      coin, diamond, rainbow, rawAtk, pinnedBoss,
+      bosses: BOSSES.map(b=>({unlocked:b.unlocked, clearCount:b.clearCount})),
+      zukan
+    }));
+  } catch(e){}
+}
+function loadGame() {
+  try {
+    // V4優先、なければV3、なければV2の順で読み込む
+    const raw = localStorage.getItem('tapBossV4')
+             || localStorage.getItem('tapBossV3')
+             || localStorage.getItem('tapBossV2');
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    coin       = d.coin       ?? 0;
+    diamond    = d.diamond    ?? 0;
+    rainbow    = d.rainbow    ?? 0;
+    // V2/V3はatk、V4はrawAtkとして保存
+    rawAtk     = d.rawAtk     ?? d.atk ?? 1;
+    pinnedBoss = d.pinnedBoss ?? null;
+    d.bosses?.forEach((b,i)=>{
+      if(!BOSSES[i]) return;
+      BOSSES[i].unlocked   = b.unlocked;
+      BOSSES[i].clearCount = b.clearCount || b.clear || 0;
+    });
+    // zukanはキー名が変わっていてもできる限りマージ
+    const zk = d.zukan || {};
+    Object.keys(zk).forEach(k=>{ if(k in zukan) zukan[k]=zk[k]; });
+    // 旧フォーマット(zukan直接オブジェクトに count が入っていた場合)
+    if(zk['レア']?.count !== undefined){
+      const legacyMap = {'レア':'r','スーパーレア':'sr','ハイパーレア':'hr','ウルトラレア':'ur','レジェンドレア':'lr'};
+      Object.entries(legacyMap).forEach(([jp,key])=>{ if(zk[jp]?.count) zukan[key]=(zukan[key]||0)+zk[jp].count; });
+    }
+  } catch(e){ console.warn('loadGame error:', e); }
+}
+
+
+/* ═══════════════════════════════
+   BOSS RUSH
+═══════════════════════════════ */
+let rushState = null;
+let rushInterval = null;
+const unlockedBossIds = new Set(); // 解放済み通知済みセット
+
+function openBossRush() {
+  document.getElementById('rush-overlay').classList.add('open');
+  document.getElementById('rush-intro').style.display = 'block';
+  document.getElementById('rush-battle').style.display = 'none';
+  document.getElementById('rush-result').style.display = 'none';
+}
+function closeRush() {
+  clearInterval(rushInterval);
+  rushInterval = null;
+  document.getElementById('rush-overlay').classList.remove('open');
+}
+
+function rushBossHp(wave) {
+  // Base HP escalates with wave: wave1=100, each wave *1.4
+  return Math.floor(100 * Math.pow(1.4, wave - 1));
+}
+
+function startBossRush() {
+  document.getElementById('rush-intro').style.display = 'none';
+  document.getElementById('rush-battle').style.display = 'block';
+  rushState = {
+    timeLeft: 60,
+    kills: 0,
+    wave: 1,
+    hp: rushBossHp(1),
+    maxHp: rushBossHp(1),
+  };
+  updateRushUI();
+  clearInterval(rushInterval);
+  rushInterval = setInterval(rushTick, 1000);
+}
+
+function rushTick() {
+  if (!rushState) return;
+  rushState.timeLeft--;
+  const timerEl = document.getElementById('rush-timer');
+  timerEl.textContent = rushState.timeLeft;
+  timerEl.className = 'rush-timer' + (rushState.timeLeft <= 10 ? ' danger' : '');
+  if (rushState.timeLeft <= 0) {
+    clearInterval(rushInterval);
+    rushInterval = null;
+    endRush();
+  }
+}
+
+function updateRushUI() {
+  if (!rushState) return;
+  const bossNames = ['🟢 スライム','🐺 ウルフ','🐉 ドラゴン','👁️ 虚無','⚫ ナイト','🪨 ゴーレム','🦁 ビースト','💀 ネクロ','🔱 バハムート','🌀 虚空','☠️ 終焉','🌋 災厄','🌟 絶対神'];
+  const nameIdx = Math.min(rushState.wave - 1, bossNames.length - 1);
+  const lvLabel = rushState.wave > bossNames.length ? `Lv${rushState.wave}` : '';
+  document.getElementById('rush-boss-name').textContent = bossNames[nameIdx] + (lvLabel ? ' '+lvLabel : '') + ` (Wave ${rushState.wave})`;
+  document.getElementById('rush-wave').textContent = `Lv${rushState.wave}`;
+
+  const pct = Math.max(0, rushState.hp / rushState.maxHp * 100);
+  const fill = document.getElementById('rush-hp-fill');
+  fill.style.width = pct + '%';
+  fill.className = 'rush-hp-fill' + (pct > 50 ? '' : pct > 25 ? ' mid' : ' low');
+  document.getElementById('rush-hp-text').textContent = fmtNum(rushState.hp) + ' / ' + fmtNum(rushState.maxHp);
+  document.getElementById('rush-kills').textContent = rushState.kills;
+}
+
+function rushAttack() {
+  if (!rushState || rushState.timeLeft <= 0) return;
+  const eff = getAtk();
+  rushState.hp = Math.max(0, rushState.hp - eff);
+  updateRushUI();
+
+  // Spawn dmg on rush btn
+  const el = document.createElement('div');
+  el.className = 'dmg-float';
+  el.textContent = '-' + fmtNum(eff);
+  const rect = document.getElementById('rush-atk-btn').getBoundingClientRect();
+  el.style.left = (rect.left + rect.width/2 - 30) + 'px';
+  el.style.top  = (rect.top - 10) + 'px';
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+
+  if (rushState.hp <= 0) {
+    rushState.kills++;
+    rushState.wave++;
+    const newHp = rushBossHp(rushState.wave);
+    rushState.hp = newHp;
+    rushState.maxHp = newHp;
+    updateRushUI();
+  }
+}
+
+function endRush() {
+  if (!rushState) return;
+  const kills = rushState.kills;
+
+  // Reward calculation
+  let rewardCoin = 0, rewardDia = 0, rewardRb = 0;
+  // Base: coins per kill
+  rewardCoin = kills * 500;
+  if (kills >= 5)  rewardCoin += 5000;
+  if (kills >= 10) { rewardCoin += 20000; rewardDia += kills * 2; }
+  if (kills >= 20) { rewardCoin += 80000; rewardDia += kills * 5; rewardRb += Math.floor(kills / 5); }
+  if (kills >= 50) { rewardCoin += 500000; rewardDia += kills * 20; rewardRb += kills; }
+
+  coin    += rewardCoin;
+  diamond += rewardDia;
+  rainbow += rewardRb;
+  updateUI();
+  saveGame();
+
+  // Show result
+  document.getElementById('rush-battle').style.display = 'none';
+  document.getElementById('rush-result').style.display = 'block';
+  document.getElementById('result-kills').textContent = kills;
+
+  let rewardHTML = `
+    <div class="rush-reward-row"><span>🪙 コイン</span><span class="rush-reward-val">+${fmtNum(rewardCoin)}</span></div>
+    <div class="rush-reward-row"><span>💎 ダイヤ</span><span class="rush-reward-val">+${fmtNum(rewardDia)}</span></div>
+    <div class="rush-reward-row"><span>🌈 虹石</span><span class="rush-reward-val">+${fmtNum(rewardRb)}</span></div>
+  `;
+  // Grade
+  let grade = kills >= 50 ? '🌟 SSS' : kills >= 30 ? '✨ SS' : kills >= 20 ? '🏆 S' : kills >= 10 ? '🥇 A' : kills >= 5 ? '🥈 B' : '🥉 C';
+  rewardHTML = `<div style="text-align:center;font-size:22px;font-weight:900;color:var(--gold);margin-bottom:8px">${grade}</div>` + rewardHTML;
+  document.getElementById('result-rewards').innerHTML = rewardHTML;
+
+  rushState = null;
+}
+
+/* ═══════════════════════════════
+   ADMIN
+═══════════════════════════════ */
+const ADMIN_PW = 'TTPJ';
+function checkAdminPw() {
+  const inp = document.getElementById('admin-pw-input');
+  if(inp.value === ADMIN_PW) {
+    document.getElementById('admin-lock').style.display  = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    document.getElementById('pw-error').style.display    = 'none';
+    inp.value = '';
+  } else {
+    document.getElementById('pw-error').style.display = 'block';
+    inp.value = '';
+  }
+}
+function lockAdmin() {
+  document.getElementById('admin-lock').style.display  = 'block';
+  document.getElementById('admin-panel').style.display = 'none';
+  switchTab('battle');
+}
+function addResource(type, amt) {
+  amt = Number(amt);
+  if(isNaN(amt)) return;
+  if(type==='coin')    coin    += amt;
+  if(type==='diamond') diamond += amt;
+  if(type==='rainbow') rainbow += amt;
+  if(type==='atk')     rawAtk  += amt;
+  updateUI(); saveGame(); showToast('✅ 追加完了！');
+}
+function setResource(type, val) {
+  if(val === null) return;
+  const amt = Number(val);
+  if(isNaN(amt) || amt < 0) { showToast('❌ 無効な値です'); return; }
+  if(type==='coin')    coin    = amt;
+  if(type==='diamond') diamond = amt;
+  if(type==='rainbow') rainbow = amt;
+  if(type==='atk')     rawAtk  = amt;
+  updateUI(); saveGame(); showToast('✅ 設定完了！');
+}
+function unlockAllBosses() {
+  BOSSES.forEach(b => { b.unlocked = true; b.clearCount = 3; });
+  renderBossList(); saveGame(); showToast('🔓 全ボス解放！');
+}
+function lockAllBosses() {
+  if(!confirm('ボスの進行状況をリセットしますか？')) return;
+  BOSSES.forEach((b,i) => { b.unlocked = (i===0); b.clearCount = 0; });
+  currentBoss = null; hp = 0;
+  document.getElementById('no-boss-msg').style.display = 'block';
+  document.getElementById('boss-name').style.display   = 'none';
+  document.getElementById('hp-bar-wrap').style.display = 'none';
+  renderBossList(); saveGame(); showToast('🔒 ボスリセット完了');
+}
+function resetAll() {
+  if(!confirm('全データをリセットします。よろしいですか？')) return;
+  localStorage.removeItem('tapBossV4');
+  localStorage.removeItem('tapBossV3');
+  localStorage.removeItem('tapBossV2');
+  location.reload();
+}
+
+// タイトルを5回タップで管理タブ表示
+let titleTapCount = 0, titleTapTimer;
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelector('.header-title')?.addEventListener('click', ()=>{
+    titleTapCount++;
+    clearTimeout(titleTapTimer);
+    titleTapTimer = setTimeout(()=>{ titleTapCount=0; }, 2000);
+    if(titleTapCount >= 5) {
+      document.getElementById('admin-tab').style.display = '';
+      showToast('🔧 管理タブ解放');
+      titleTapCount = 0;
+    }
+  });
+});
+
+
+/* ═══════════════════════════════
+   STAGE 2 DATA
+═══════════════════════════════ */
+const S2_BOSSES_DEF = [
+  // 闇界 (1-10: unlocked sequentially)
+  {name:"影の使者",      emoji:"🖤", maxHp:5e6,    drop:[500000,800000]},
+  {name:"深淵の番人",    emoji:"🌑", maxHp:1.5e7,  drop:[1e6,1.5e6]},
+  {name:"虚空の爪",      emoji:"💀", maxHp:4e7,    drop:[2.5e6,4e6]},
+  {name:"混沌の蛇",      emoji:"🐍", maxHp:1e8,    drop:[6e6,9e6]},
+  {name:"暗黒騎士",      emoji:"🗡️", maxHp:2.5e8,  drop:[1.2e7,1.8e7]},
+  {name:"奈落の君主",    emoji:"👿", maxHp:6e8,    drop:[2.5e7,3.5e7]},
+  {name:"魔神バアル",    emoji:"🔱", maxHp:1.5e9,  drop:[5e7,7e7]},
+  {name:"終末の使徒",    emoji:"☄️", maxHp:4e9,    drop:[1e8,1.5e8]},
+  {name:"宇宙の破壊者",  emoji:"🌌", maxHp:1e10,   drop:[2e8,3e8]},
+  {name:"創造の敵",      emoji:"⚡", maxHp:2.5e10, drop:[4e8,6e8]},
+  // 神界 Extreme (need 3 clears, 11-20)
+  {name:"堕天使ルシファー",emoji:"😈",maxHp:8e10,   drop:[8e8,1.2e9],   isExtreme:true},
+  {name:"破壊神シヴァ",  emoji:"🔥", maxHp:2e11,   drop:[1.5e9,2.5e9], isExtreme:true},
+  {name:"混沌神ニャルラ",emoji:"🌀", maxHp:6e11,   drop:[3e9,5e9],     isExtreme:true},
+  {name:"冥府王ハデス",  emoji:"💎", maxHp:1.5e12, drop:[6e9,1e10],    isExtreme:true},
+  {name:"時間神クロノス",emoji:"⏳", maxHp:4e12,   drop:[1.2e10,2e10], isExtreme:true},
+  {name:"星辰神",        emoji:"🌟", maxHp:1e13,   drop:[2.5e10,4e10], isExtreme:true},
+  {name:"虚無神ヨグ",    emoji:"🕳️", maxHp:3e13,   drop:[5e10,8e10],   isExtreme:true},
+  {name:"混沌皇帝",      emoji:"👑", maxHp:8e13,   drop:[1e11,1.5e11], isExtreme:true},
+  {name:"神格破壊者",    emoji:"💫", maxHp:2e14,   drop:[2e11,3e11],   isExtreme:true},
+  {name:"全知全能神Ω",  emoji:"♾️", maxHp:5e14,   drop:[4e11,6e11],   isExtreme:true},
+  // 超神界 (21-28: Extreme)
+  {name:"次元の彼方の者",emoji:"🔮", maxHp:1.5e15, drop:[8e11,1.2e12], isExtreme:true},
+  {name:"概念の破砕者",  emoji:"💠", maxHp:5e15,   drop:[1.5e12,2.5e12],isExtreme:true},
+  {name:"存在の否定者",  emoji:"🌈", maxHp:1.5e16, drop:[3e12,5e12],   isExtreme:true},
+  {name:"宇宙意思",      emoji:"🧿", maxHp:5e16,   drop:[6e12,1e13],   isExtreme:true},
+  {name:"原初の闇",      emoji:"⬛", maxHp:1.5e17, drop:[1.2e13,2e13], isExtreme:true},
+  {name:"始源神",        emoji:"✨", maxHp:5e17,   drop:[2.5e13,4e13], isExtreme:true},
+  {name:"真・創造神",    emoji:"🌠", maxHp:2e18,   drop:[5e13,8e13],   isExtreme:true},
+  {name:"絶対者",        emoji:"🌌", maxHp:1e19,   drop:[1e14,2e14],   isExtreme:true},
+];
+const S2_BOSSES = S2_BOSSES_DEF.map((b,i)=>({...b,unlocked:i===0,clearCount:0}));
+
+// S2 Gacha tables
+const VOID_GACHA = [
+  {key:"vr1",  label:"虚空R",    cls:"",  atk:50000,      rate:40, color:"#c084fc"},
+  {key:"vr2",  label:"虚空SR",   cls:"",  atk:200000,     rate:28, color:"#a78bfa"},
+  {key:"vr3",  label:"虚空UR",   cls:"",  atk:800000,     rate:18, color:"#8b5cf6"},
+  {key:"vr4",  label:"虚空LR",   cls:"",  atk:3000000,    rate:10, color:"#818cf8"},
+  {key:"vr5",  label:"★虚空神話",cls:"",  atk:15000000,   rate:4,  color:"#e0e7ff"},
+];
+const CHAOS_GACHA = [
+  {key:"cr1",  label:"混沌R",    cls:"",  atk:500000,     rate:38, color:"#818cf8"},
+  {key:"cr2",  label:"混沌SR",   cls:"",  atk:2000000,    rate:26, color:"#6366f1"},
+  {key:"cr3",  label:"混沌UR",   cls:"",  atk:8000000,    rate:18, color:"#4f46e5"},
+  {key:"cr4",  label:"混沌LR",   cls:"",  atk:30000000,   rate:12, color:"#c7d2fe"},
+  {key:"cr5",  label:"★★混沌神", cls:"",  atk:120000000,  rate:5,  color:"#e0e7ff"},
+  {key:"cr6",  label:"★★★虚無神",cls:"",  atk:600000000,  rate:1,  color:"#fff"},
+];
+const GOD_GACHA = [
+  {key:"gr1",  label:"神格R",    cls:"",  atk:5000000,    rate:35, color:"#fbbf24"},
+  {key:"gr2",  label:"神格SR",   cls:"",  atk:20000000,   rate:26, color:"#f59e0b"},
+  {key:"gr3",  label:"神格UR",   cls:"",  atk:80000000,   rate:18, color:"#d97706"},
+  {key:"gr4",  label:"神格LR",   cls:"",  atk:300000000,  rate:13, color:"#fed7aa"},
+  {key:"gr5",  label:"★神格神話",cls:"",  atk:1200000000, rate:6,  color:"#fef3c7"},
+  {key:"gr6",  label:"★★創造神", cls:"",  atk:6000000000, rate:2,  color:"#fff"},
+];
+
+/* ═══════════════════════════════
+   STAGE 2 STATE
+═══════════════════════════════ */
+let currentStage = 1;
+let stage2Unlocked = false;
+let s2CurrentBoss = null, s2Hp = 0;
+let s2PinnedBoss = null;
+let voidStone = 0, chaosStone = 0, godStone = 0;
+const s2Zukan = {};
+[...VOID_GACHA,...CHAOS_GACHA,...GOD_GACHA].forEach(g=>s2Zukan[g.key]=0);
+const s2UnlockedBossIds = new Set();
+
+/* ═══════════════════════════════
+   STAGE SWITCH
+═══════════════════════════════ */
+function switchStage(n) {
+  if(n===2 && !stage2Unlocked){ showToast('ボスラッシュで50体撃破して解放！'); return; }
+  currentStage = n;
+  const s1Content = document.getElementById('pane-battle').parentElement;
+
+  // Show/hide stage content
+  const stage1els = ['pane-battle','pane-gacha','pane-zukan'];
+  stage1els.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = n===1 ? '' : 'none';
+  });
+  // Also hide/show tabs
+  const tabs = document.querySelector('.tabs');
+  if(tabs) tabs.style.display = n===1 ? '' : 'none';
+  document.querySelector('[onclick="openBossRush()"]').style.display = n===1 ? '' : 'none';
+
+  document.getElementById('stage2-content').style.display = n===2 ? 'block' : 'none';
+  document.getElementById('s2-tabs').style.display = n===2 ? 'block' : 'none';
+
+  document.getElementById('stage-btn-1').className = 'stage-btn' + (n===1?' active':'');
+  document.getElementById('stage-btn-2').className = 'stage-btn s2' + (n===2?' s2-active':'');
+
+  if(n===2){ s2RenderBossList(); s2UpdateZukan(); }
+}
+
+function s2SwitchTab(name) {
+  document.querySelectorAll('[data-s2tab]').forEach(t=>t.classList.toggle('active',t.dataset.s2tab===name));
+  ['battle','gacha','zukan'].forEach(id=>{
+    const el = document.getElementById('s2-pane-'+id);
+    if(el) el.classList.toggle('active', id===name);
+  });
+}
+
+function s2SwitchGacha(type) {
+  ['void','chaos','god'].forEach(t=>{
+    const tab = document.getElementById('s2-tab-'+t);
+    const pane = document.getElementById('s2-gpane-'+t);
+    const isActive = t===type;
+    if(tab){
+      tab.classList.toggle('active',isActive);
+      if(isActive) tab.style.borderColor=tab.style.color; else tab.style.borderColor='';
+      if(isActive) tab.style.background=`rgba(128,128,255,.1)`; else tab.style.background='';
+    }
+    if(pane) pane.classList.toggle('active',isActive);
+  });
+}
+
+/* ═══════════════════════════════
+   S2 BATTLE
+═══════════════════════════════ */
+function s2SelectBoss(i){
+  s2CurrentBoss=i; s2Hp=S2_BOSSES[i].maxHp;
+  s2UpdateBossPanel(); s2RenderBossList();
+  document.getElementById('s2-log').textContent=`${S2_BOSSES[i].name} に挑戦！`;
+}
+function s2Attack(){
+  if(s2CurrentBoss===null||s2Hp<=0){
+    const btn=document.getElementById('s2-attack-btn');
+    btn.classList.add('shake');setTimeout(()=>btn.classList.remove('shake'),200);return;
+  }
+  const eff=getAtk(); s2Hp=Math.max(0,s2Hp-eff);
+  s2UpdateBossPanel();
+  spawnDmgOn('s2-attack-btn','-'+fmtNum(eff));
+  if(s2Hp===0){
+    const b=S2_BOSSES[s2CurrentBoss];
+    const drop=rndInt(b.drop[0],b.drop[1]);
+    coin+=drop; b.clearCount++;
+    const needed=b.isExtreme?3:1;
+    if(b.clearCount>=needed && S2_BOSSES[s2CurrentBoss+1] && !S2_BOSSES[s2CurrentBoss+1].unlocked){
+      S2_BOSSES[s2CurrentBoss+1].unlocked=true;
+      if(!s2UnlockedBossIds.has(S2_BOSSES[s2CurrentBoss+1].name)){
+        s2UnlockedBossIds.add(S2_BOSSES[s2CurrentBoss+1].name);
+        showToast(`🔮 ${S2_BOSSES[s2CurrentBoss+1].name} 解放！`);
+      }
+    }
+    document.getElementById('s2-log').textContent=`✨ ${b.name} 撃破！ 🪙 +${fmtNum(drop)}`;
+    updateUI(); s2RenderBossList(); saveGame();
+  }
+}
+function spawnDmgOn(btnId, text){
+  const el=document.createElement('div');
+  el.className='dmg-float'; el.textContent=text;
+  const rect=document.getElementById(btnId)?.getBoundingClientRect();
+  if(!rect) return;
+  el.style.left=(rect.left+rect.width/2-30)+'px';
+  el.style.top=(rect.top-10)+'px';
+  document.body.appendChild(el);
+  el.addEventListener('animationend',()=>el.remove());
+}
+function s2UpdateBossPanel(){
+  if(s2CurrentBoss===null) return;
+  const b=S2_BOSSES[s2CurrentBoss];
+  document.getElementById('s2-no-boss-msg').style.display='none';
+  const nameEl=document.getElementById('s2-boss-name');
+  nameEl.style.display='block'; nameEl.textContent=b.emoji+' '+b.name;
+  document.getElementById('s2-hp-bar-wrap').style.display='block';
+  const pct=Math.max(0,s2Hp/b.maxHp*100);
+  const bar=document.getElementById('s2-hp-bar');
+  bar.style.width=pct+'%';
+  bar.className='hp-bar-fill'+(pct>50?'':pct>25?' mid':' low');
+  document.getElementById('s2-hp-text').textContent=fmtNum(s2Hp)+' / '+fmtNum(b.maxHp);
+  document.getElementById('s2-clear-progress').innerHTML=b.isExtreme
+    ?[0,1,2].map(j=>`<div class="clear-pip ${j<b.clearCount?'done':''}"></div>`).join(''):'';
+}
+function s2RenderBossList(){
+  let order=S2_BOSSES.map((_,i)=>i);
+  if(s2PinnedBoss!==null) order=[s2PinnedBoss,...order.filter(i=>i!==s2PinnedBoss)];
+  document.getElementById('s2-boss-list').innerHTML=order.map(i=>{
+    const b=S2_BOSSES[i];
+    if(!b.unlocked) return `<div class="boss-btn-wrap"><button class="boss-btn" disabled>🔒 ???</button></div>`;
+    const active=s2CurrentBoss===i?'active-boss':'';
+    const ext=b.isExtreme?`<span class="extreme-tag" style="border-color:rgba(168,85,247,.4);color:#c084fc;background:rgba(168,85,247,.1)">3連(${b.clearCount}/3)</span> `:'';
+    const pinned=s2PinnedBoss===i;
+    return `<div class="boss-btn-wrap">
+      <button class="pin-btn ${pinned?'pinned':''}" onclick="s2TogglePin(${i})">${pinned?'📌':'📍'}</button>
+      <button class="boss-btn ${active}" onclick="s2SelectBoss(${i})" style="${active?'border-color:#c084fc;color:#c084fc':''}">
+        ${b.emoji} ${b.name}
+        <div class="boss-hp-tag">${ext}HP ${fmtNum(b.maxHp)}</div>
+        <div class="boss-drop">🪙${fmtNum(b.drop[0])}〜${fmtNum(b.drop[1])}</div>
+      </button>
+    </div>`;
+  }).join('');
+}
+function s2TogglePin(i){ s2PinnedBoss=(s2PinnedBoss===i)?null:i; s2RenderBossList(); saveGame(); }
+
+/* ═══════════════════════════════
+   S2 EXCHANGE & GACHA
+═══════════════════════════════ */
+function setVoidMax(){ document.getElementById('void-exchange-input').value=Math.floor(rainbow/100)*100||''; }
+function setChaosMax(){ document.getElementById('chaos-exchange-input').value=Math.floor(voidStone/100)*100||''; }
+function setGodMax(){ document.getElementById('god-exchange-input').value=Math.floor(chaosStone/100)*100||''; }
+
+function exchangeToVoid(){
+  const amt=Math.floor(parseInt(document.getElementById('void-exchange-input').value)||0);
+  if(amt<100){showToast('🌈 最低100虹石必要');return;}
+  if(rainbow<amt){showToast('🌈 虹石が足りない！');return;}
+  const gained=Math.floor(amt/100); rainbow-=gained*100; voidStone+=gained;
+  document.getElementById('void-exchange-input').value='';
+  updateUI(); saveGame(); showToast(`💠 +${fmtNum(gained)} 虚空石獲得！`);
+}
+function exchangeToChaos(){
+  const amt=Math.floor(parseInt(document.getElementById('chaos-exchange-input').value)||0);
+  if(amt<100){showToast('💠 最低100虚空石必要');return;}
+  if(voidStone<amt){showToast('💠 虚空石が足りない！');return;}
+  const gained=Math.floor(amt/100); voidStone-=gained*100; chaosStone+=gained;
+  document.getElementById('chaos-exchange-input').value='';
+  updateUI(); saveGame(); showToast(`🌀 +${fmtNum(gained)} 混沌石獲得！`);
+}
+function exchangeToGod(){
+  const amt=Math.floor(parseInt(document.getElementById('god-exchange-input').value)||0);
+  if(amt<100){showToast('🌀 最低100混沌石必要');return;}
+  if(chaosStone<amt){showToast('🌀 混沌石が足りない！');return;}
+  const gained=Math.floor(amt/100); chaosStone-=gained*100; godStone+=gained;
+  document.getElementById('god-exchange-input').value='';
+  updateUI(); saveGame(); showToast(`👑 +${fmtNum(gained)} 神格石獲得！`);
+}
+
+function doVoidGacha(t){
+  if(voidStone<t){showToast('💠 虚空石が足りない！');return;}
+  voidStone-=t;
+  const results=[]; let total=0;
+  for(let i=0;i<t;i++){const g=rollFrom(VOID_GACHA);results.push(g);s2Zukan[g.key]++;rawAtk+=g.atk;total+=g.atk;}
+  updateUI();s2UpdateZukan();saveGame();
+  s2GachaModal(results,total,VOID_GACHA,'void');
+  document.getElementById('last-void-summary').innerHTML=buildSummary(results,VOID_GACHA,total,'#c084fc');
+}
+function doChaosGacha(t){
+  if(chaosStone<t){showToast('🌀 混沌石が足りない！');return;}
+  chaosStone-=t;
+  const results=[]; let total=0;
+  for(let i=0;i<t;i++){const g=rollFrom(CHAOS_GACHA);results.push(g);s2Zukan[g.key]++;rawAtk+=g.atk;total+=g.atk;}
+  updateUI();s2UpdateZukan();saveGame();
+  s2GachaModal(results,total,CHAOS_GACHA,'chaos');
+  document.getElementById('last-chaos-summary').innerHTML=buildSummary(results,CHAOS_GACHA,total,'#818cf8');
+}
+function doGodGacha(t){
+  if(godStone<t){showToast('👑 神格石が足りない！');return;}
+  godStone-=t;
+  const results=[]; let total=0;
+  for(let i=0;i<t;i++){const g=rollFrom(GOD_GACHA);results.push(g);s2Zukan[g.key]++;rawAtk+=g.atk;total+=g.atk;}
+  updateUI();s2UpdateZukan();saveGame();
+  s2GachaModal(results,total,GOD_GACHA,'god');
+  document.getElementById('last-god-summary').innerHTML=buildSummary(results,GOD_GACHA,total,'#fbbf24');
+}
+function buildSummary(results,table,total,color){
+  const counts={}; table.forEach(g=>counts[g.key]=0); results.forEach(g=>counts[g.key]++);
+  return table.filter(g=>counts[g.key]>0).map(g=>`${g.label}×${counts[g.key]}`).join(' / ')
+    + `<br>攻撃力 <span style="color:${color}">+${fmtNum(total)}</span> 獲得`;
+}
+function s2GachaModal(results,total,table,type){
+  const icons={void:'💠',chaos:'🌀',god:'👑'};
+  const colors={void:'#c084fc',chaos:'#818cf8',god:'#fbbf24'};
+  const titles={void:'💠 VOID GACHA RESULT',chaos:'🌀 CHAOS GACHA RESULT',god:'👑 GOD GACHA RESULT'};
+  document.getElementById('modal-title').textContent=titles[type];
+  document.getElementById('modal-title').style.color=colors[type];
+  document.getElementById('modal-title').className='modal-title';
+  document.getElementById('modal-close-btn').className='modal-close';
+  document.getElementById('modal-close-btn').style.background=`linear-gradient(135deg,#1a1040,#3730a3)`;
+  const grid=document.getElementById('result-grid');
+  if(results.length<=10){
+    grid.style.gridTemplateColumns=results.length===1?'110px':'repeat(5,1fr)';
+    grid.innerHTML=results.map((g,i)=>`<div style="border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-weight:700;border:1px solid ${g.color};padding:5px 2px;gap:2px;aspect-ratio:.65;animation:cardReveal .3s ease ${i*.05}s both;background:rgba(128,0,255,.1);color:${g.color};font-size:${results.length===1?'12':'8'}px">
+      <div style="font-size:${results.length===1?'26':'13'}px">${icons[type]}</div>
+      <div>${g.label}</div><div style="color:var(--gold);font-size:8px">+${fmtNum(g.atk)}</div></div>`).join('');
+  } else {
+    grid.style.gridTemplateColumns=`repeat(${Math.min(table.length,5)},1fr)`;
+    const counts={}; results.forEach(g=>counts[g.key]=(counts[g.key]||0)+1);
+    grid.innerHTML=table.map((g,i)=>`<div style="border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-weight:700;border:1px solid ${g.color};padding:5px 2px;gap:2px;aspect-ratio:.8;animation:cardReveal .3s ease ${i*.07}s both;background:rgba(128,0,255,.08);color:${g.color};font-size:9px">
+      <div style="font-size:15px">×${counts[g.key]||0}</div>
+      <div>${g.label}</div><div style="color:var(--gold);font-size:8px">+${fmtNum((counts[g.key]||0)*g.atk)}</div></div>`).join('');
+  }
+  document.getElementById('result-summary').innerHTML=`合計攻撃力 <span style="color:${colors[type]}">+${fmtNum(total)}</span> 獲得<br>現在の攻撃力: <span>${fmtNum(getAtk())}</span>`;
+  document.getElementById('gacha-modal').classList.add('open');
+}
+
+/* ═══════════════════════════════
+   S2 ZUKAN
+═══════════════════════════════ */
+function s2UpdateZukan(){
+  const el=document.getElementById('s2-zukan-grid');
+  if(!el) return;
+  const card=(g,color)=>{const cnt=s2Zukan[g.key]||0;return `<div class="zukan-card"><div class="zukan-card-header"><span class="rate-badge" style="color:${color};border:1px solid ${color};background:rgba(128,0,255,.08)">${g.label}</span><span class="zukan-count">×${cnt}</span></div><div class="zukan-atk" style="color:${color}">${fmtNum(cnt*g.atk)}</div><div class="zukan-atk-label">累計攻撃力</div></div>`;};
+  el.innerHTML=
+    `<div class="zukan-section-label">💠 虚空ガチャ</div>`+VOID_GACHA.map(g=>card(g,'#c084fc')).join('')+
+    `<div class="zukan-section-label">🌀 混沌ガチャ</div>`+CHAOS_GACHA.map(g=>card(g,'#818cf8')).join('')+
+    `<div class="zukan-section-label">👑 神格ガチャ</div>`+GOD_GACHA.map(g=>card(g,'#fbbf24')).join('');
+}
+
+/* ═══════════════════════════════
+   S2 HEADER STATS
+═══════════════════════════════ */
+function updateS2Stats(){
+  // Ensure s2 currency shown in header - add dynamic elements
+  let vEl=document.getElementById('void-val');
+  let cEl=document.getElementById('chaos-val');
+  let gEl=document.getElementById('god-val');
+  if(!vEl){
+    const header=document.querySelector('.header-stats');
+    const makeItem=(id,icon,cls)=>{
+      const d=document.createElement('div');d.className='stat-item';
+      d.innerHTML=`${icon} <span class="stat-val" id="${id}" style="color:#c084fc">0</span>`;
+      header.appendChild(d);
+    };
+    makeItem('void-val','💠','');
+    makeItem('chaos-val','🌀','');
+    makeItem('god-val','👑','');
+    vEl=document.getElementById('void-val');
+    cEl=document.getElementById('chaos-val');
+    gEl=document.getElementById('god-val');
+  }
+  if(vEl) vEl.textContent=fmtNum(voidStone);
+  if(cEl) cEl.textContent=fmtNum(chaosStone);
+  if(gEl) gEl.textContent=fmtNum(godStone);
+}
+
+/* ═══════════════════════════════
+   UPDATE UI PATCH (S2)
+═══════════════════════════════ */
+const _origUpdateUI = updateUI;
+updateUI = function(){
+  _origUpdateUI();
+  if(stage2Unlocked) updateS2Stats();
+};
+
+/* ═══════════════════════════════
+   SAVE/LOAD PATCH (S2)
+═══════════════════════════════ */
+const _origSave = saveGame;
+saveGame = function(){
+  _origSave();
+  try{
+    localStorage.setItem('tapBossS2', JSON.stringify({
+      stage2Unlocked, voidStone, chaosStone, godStone,
+      s2bosses: S2_BOSSES.map(b=>({unlocked:b.unlocked,clearCount:b.clearCount})),
+      s2Zukan, s2PinnedBoss
+    }));
+  }catch(e){}
+};
+function loadS2(){
+  try{
+    const raw=localStorage.getItem('tapBossS2');
+    if(!raw) return;
+    const d=JSON.parse(raw);
+    stage2Unlocked=d.stage2Unlocked??false;
+    voidStone=d.voidStone??0; chaosStone=d.chaosStone??0; godStone=d.godStone??0;
+    d.s2bosses?.forEach((b,i)=>{if(!S2_BOSSES[i])return;S2_BOSSES[i].unlocked=b.unlocked;S2_BOSSES[i].clearCount=b.clearCount||0;});
+    Object.keys(d.s2Zukan||{}).forEach(k=>{if(k in s2Zukan)s2Zukan[k]=d.s2Zukan[k];});
+    s2PinnedBoss=d.s2PinnedBoss??null;
+    if(stage2Unlocked) unlockStage2UI();
+  }catch(e){}
+}
+
+function unlockStage2UI(){
+  stage2Unlocked=true;
+  const btn=document.getElementById('stage-btn-2');
+  btn.classList.remove('locked');
+  btn.innerHTML='🔮 ステージ2';
+  updateS2Stats();
+}
+
+/* ═══════════════════════════════
+   RUSH PATCH: 50体でS2解放
+═══════════════════════════════ */
+const _origEndRush = endRush;
+endRush = function(){
+  _origEndRush();
+  // Check kills from last rush (rushState is null by now, result is in DOM)
+  const killsEl=document.getElementById('result-kills');
+  const kills=killsEl?parseInt(killsEl.textContent)||0:0;
+  if(kills>=50 && !stage2Unlocked){
+    unlockStage2UI();
+    const banner=document.getElementById('stage-unlock-banner');
+    if(banner){banner.classList.add('visible','rush-unlock-flash');}
+    saveGame();
+  }
+};
+
+/* ═══════════════════════════════
+   INIT
+═══════════════════════════════ */
+loadGame();
+loadS2();
+updateUI();
+renderBossList();
+updateZukan();
+</script>
+</body>
+</html>
